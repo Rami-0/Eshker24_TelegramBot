@@ -9,8 +9,8 @@ const handleCallbackQuery = (bot, callbackQuery) => {
 
   switch (data) {
     case "inf":
-      responseText = "Here is the information you requested!";
-      break;
+      startController.infoMessage(bot, chatId, message.from.first_name);
+      return;
     case "card":
       responseText = "Here is how you can get a debit card!";
       break;
@@ -24,8 +24,10 @@ const handleCallbackQuery = (bot, callbackQuery) => {
       responseText = "Here are the frequently asked questions.";
       break;
     case "contact":
-      responseText = "You can contact us at contact@example.com.";
       break;
+    case "back":
+      startController.back(bot, chatId, message.from.first_name);
+      return;
     default:
       responseText = "Unknown selection!";
   }
