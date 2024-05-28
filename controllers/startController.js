@@ -1,13 +1,16 @@
+const { buttons } = require("../constants/btns");
+
 const startMessage = (bot, chatId, name) => {
   const keyboard = {
-    inline_keyboard: [
-      [{ text: "Info 🎖", callback_data: "inf" }],
-      [{ text: "How to get debit Card", callback_data: "card" }],
-    ],
+    inline_keyboard: [...buttons],
   };
 
-  bot.sendMessage(chatId, ``, {
-    reply_markup: keyboard,
+  bot.sendMessage(chatId, `Hello ${name}! How can I assist you today?`, {
+    reply_markup: {
+      inline_keyboard: keyboard.inline_keyboard,
+    },
+    resize_keyboard: true,
+    one_time_keyboard: true,
   });
 };
 
