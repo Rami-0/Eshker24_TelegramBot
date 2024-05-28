@@ -8,8 +8,7 @@ Promise.config({
 
 TelegramBot.Promise = Promise;
 
-const TOKEN = "7199195085:AAGX3FedvGavLPKAKee5fLJly0lKZOIO3W0";
-
+const TOKEN = process.env.TG_TOKEN;
 const bot = new TelegramBot(TOKEN, { polling: true });
 
 const startController = require("./controllers/startController");
@@ -18,7 +17,6 @@ const callbackController = require("./controllers/callbackController");
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const name = msg.from.first_name;
-
   startController.startMessage(bot, chatId, name);
 });
 

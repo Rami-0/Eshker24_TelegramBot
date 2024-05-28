@@ -18,9 +18,16 @@ const handleCallbackQuery = (bot, callbackQuery) => {
       responseText = "Unknown selection!";
   }
 
-  bot.sendMessage(chatId, responseText);
-
-  startController.startMessage(bot, chatId, message.from.first_name);
+  if (responseText) {
+    bot
+      .sendMessage(chatId, responseText)
+      .then(() => {
+        startController.startMessage(bot, chatId, message.from.first_name);
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
+      });
+  }
 };
 
 module.exports = {

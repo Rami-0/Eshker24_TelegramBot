@@ -6,7 +6,7 @@ const startMessage = (bot, chatId, name) => {
     ],
   };
 
-  bot.sendMessage(chatId, ``, {
+  bot.sendMessage(chatId, `Hello ${chatId}`, {
     reply_markup: keyboard,
   });
 };
