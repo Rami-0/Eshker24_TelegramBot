@@ -1,34 +1,16 @@
-const TelegramBot = require("node-telegram-bot-api");
-const Promise = require("bluebird");
+const express = require("express");
 require("dotenv").config();
 
-Promise.config({
-  cancellation: true,
-});
+const cors = require("cors");
 
-TelegramBot.Promise = Promise;
+const userRouter = require("./routes/user.routes");
 
-const TOKEN = process.env.TG_TOKEN;
-const bot = new TelegramBot(TOKEN, { polling: true });
+const PORT = 3000;
 
-const startController = require("./controllers/startController");
-const callbackController = require("./controllers/callbackController");
+const app = express();
 
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const name = msg.from.first_name;
-  startController.startMessage(bot, chatId, name);
-});
+app.use(express.json());
+app.use(cors());
+app.use("/v1/api/", userRouter);
 
-bot.on("callback_query", (callbackQuery) => {
-  callbackController.handleCallbackQuery(bot, callbackQuery);
-});
-
-bot.on("polling_error", (error) => console.log(error));
-bot.on("error", (error) => console.log(error));
-
-bot.getMe().then((me) => {
-  console.log(`Bot ${me.username} is up and running...`);
-});
-
-module.exports = bot;
+app.listen(PORT, () => console.log("Server started " + PORT));
