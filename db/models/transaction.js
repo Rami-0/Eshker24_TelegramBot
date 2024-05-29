@@ -1,38 +1,38 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Transaction = sequelize.define('Transaction', {
-    INN: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
-    PhoneNumber: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
     OTP: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     OTPTime: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
     },
     CurrentTime: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW
+      defaultValue: DataTypes.NOW,
     },
     Status: {
       type: DataTypes.STRING,
-      allowNull: false
-    }
+      allowNull: false,
+    },
+    User_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
+    },
   }, {});
-  
-  Transaction.associate = function(models) {
 
+  Transaction.associate = function(models) {
+    Transaction.belongsTo(models.User, { foreignKey: 'User_id' });
   };
-  
+
   return Transaction;
 };

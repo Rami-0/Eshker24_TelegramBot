@@ -2,43 +2,26 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Transactions', {
+    await queryInterface.createTable('Users', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      OTP: {
-        type: Sequelize.STRING,
-        allowNull: true,
-				validate: {
-					isInt: true, // Checks if the value is an integer
-					min: 1, // Ensures the value is at least 1 (positive integer)
-				},
-      },
-      OTPTime: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
-      CurrentTime: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-      },
-      Status: {
+      INN: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
-      User_id: {
-        type: Sequelize.INTEGER,
+      PhoneNumber: {
+        type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+        unique: true,
+      },
+      ChatID: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -53,6 +36,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Transactions');
+    await queryInterface.dropTable('Users');
   }
 };

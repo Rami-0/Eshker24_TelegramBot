@@ -23,4 +23,4 @@ RUN chmod +x wait-for-it.sh
 EXPOSE 8080
 
 # Start the application, waiting for the database to be ready
-CMD ["./wait-for-it.sh", "db:5432", "--", "npm", "start"]
+CMD ["./wait-for-it.sh", "db:5432", "--", "npm rnu dev"]

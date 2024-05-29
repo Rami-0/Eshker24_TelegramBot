@@ -4,11 +4,12 @@ services:
   db:
     image: postgres
     environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: node_postgres
     ports:
-      - '5432:5432'
+      - 5432:5432
     volumes:
       - db:/var/lib/postgresql/data
     networks:
@@ -34,7 +35,7 @@ services:
       - '8080:8080'
     depends_on:
       - db
-    command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'sh', '-c', 'npm run dev']
+    command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'sh', '-c', 'tail -f /dev/null']
     environment:
       DATABASE_URL: postgres://postgres:root@db:5432/node_postgres
     networks:
