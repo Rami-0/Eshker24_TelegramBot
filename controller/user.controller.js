@@ -1,55 +1,40 @@
-const db = require("../db/db");
-const bot = require("../bot");
 const speakeasy = require("speakeasy");
+const bot = require("../bot");
 
-bot
-  .getUpdates()
-  .then((updates) => {
-    if (updates && updates.length > 0) {
-      // Get the chatId from the first update
-      const chatId = updates[0].message.chat.id;
-      console.log("Chat ID:", chatId);
-    } else {
-      console.log("No updates found.");
-    }
-  })
-  .catch((error) => {
-    console.error("Error getting updates:", error);
-  });
+let userChatIds = {}; // In-memory storage for user chat IDs
+
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  console.log(
+    `Received /start command from user ID: ${userId} with chat ID: ${chatId}`
+  );
+  userChatIds[userId] = chatId; // Store the chat ID for this user
+  bot.sendMessage(chatId, "Welcome! Your chat ID has been saved.");
+});
+
 class UserController {
   async createUser(req, res) {
-    const { inn, phoneNumber } = req.body;
+    const { userId, inn, phoneNumber } = req.body; // Expect userId in request body
     try {
-      // const newUser = await db.query(`
-      // INSERT INTO users (name) VALUES ($1) RETURNING *`,
-      // [name]
-      // );
-      // const createdUser = newUser.rows[0];
-
       const secret = speakeasy.generateSecret({ length: 6 });
 
-      // Generate a TOTP code using the secret key
       const code = speakeasy.totp({
-        // Use the Base32 encoding of the secret key
         secret: secret.base32,
-
-        // Tell Speakeasy to use the Base32
-        // encoding format for the secret key
         encoding: "base32",
       });
 
-      // Log the secret key and TOTP code
-      // to the console
-      //   console.log("Secret: ", secret.base32);
-
-      //   console.log("Code: ", code);
-
       const createdUser = { id: 1, inn: inn };
 
-      const chatId = process.env.TG_CHAT_ID;
       const message = `Password: ${code}`;
 
-      //   await bot.sendMessage(chatId, message);
+      const chatId = userChatIds[userId];
+      if (chatId) {
+        // Check if chatId is available for this user
+        await bot.sendMessage(chatId, message);
+      } else {
+        console.error(`Chat ID for user ID: ${userId} is not set.`);
+      }
 
       res.status(201).json(createdUser);
     } catch (error) {
