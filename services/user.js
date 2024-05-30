@@ -61,6 +61,32 @@ class UserServices {
       throw new Error('Could not delete user');
     }
   }
+
+  static async findByINNOrPhoneNumber(searchString) {
+    try {
+      const user = await User.findOne({
+        where: {
+          [Op.or]: [
+            { INN: searchString },
+            { PhoneNumber: searchString },
+          ],
+        },
+      });
+      return true;
+    } catch (error) {
+      throw new Error('Could not find user');
+    }
+  }
+
+  static async assignChatID(user, chatID) {
+    try {
+      user.ChatID = chatID;
+      await user.save();
+      return user;
+    } catch (error) {
+      throw new Error('Could not assign ChatID to user');
+    }
+  }
 }
 
 module.exports = UserServices;
