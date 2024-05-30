@@ -70,6 +70,26 @@ class UserController {
       // bot.sendMessage(chatId, 'Chat not created');
     }
   }
+
+  static async VerifyOTP(req ,res) {
+    const data = {
+      token: req.body.token,
+      otp: req.body.otp
+    }
+    try {
+      // Assuming you have a method to verify OTP
+      const isOtpValid = await OTPServices.verifyOtp(data.token, data.otp); // Function to verify OTP for the user
+  
+      if (isOtpValid === 'success') {
+        return { success: true };
+      } else {
+        return { success: false, message: "Invalid OTP" };
+      }
+    } catch (error) {
+      console.error("Error while verifying INN and OTP:", error);
+      throw error;
+    }
+    }
 }
 
 module.exports = UserController;

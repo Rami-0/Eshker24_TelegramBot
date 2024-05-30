@@ -61,6 +61,19 @@ class OTPServices {
       throw new Error('Could not delete OTP');
     }
   }
+  static async verifyOtp(token, otp){
+    const _otp = await OTP.findByPk(token);
+    if (!otp) {
+      throw new Error('OTP not found');
+    }
+    if(otp === _otp.otp){
+      await otp.destroy();
+      return "success"
+    }
+    else {
+      return "fail"
+    }
+  }
 }
 
 module.exports = OTPServices;

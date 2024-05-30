@@ -23,6 +23,7 @@ router.get("/users", (req, res) => {
  *  - The chat ID is not set for the user (400 Bad Request).
  */
 router.post("/regestration/otp", userController.createOTP);
+router.post("/regestration/verification", userController.createOTP);
 
 router.post("/init", userController.init);
 
