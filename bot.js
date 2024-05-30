@@ -14,23 +14,41 @@ const bot = new TelegramBot(TOKEN, {
   polling: true,
 });
 
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-
   bot.sendMessage(chatId, "Welcome! Please share your phone number.");
 });
 
-bot.on("message", (msg) => {
+bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
 
-  const user = UserServices.findByINNOrPhoneNumber(msg.text);
+  if (msg.text === "" || !/^\+?\d{10,15}$/.test(msg.text)) {
+    bot.sendMessage(chatId, "Please share a valid phone number.");
+    return;
+  }
 
-  if (user) {
-    const temp = UserServices.assignChatID(user, chatId);
+  try {
+    const user = await UserServices.findByINNOrPhoneNumber(msg.text);
 
-    if (temp) {
-      bot.sendMessage(temp.chatID, temp.PhoneNumber);
+    if (user.user && !user.message) {
+      const updatedUser = await UserServices.assignChatID(user, chatId);
+
+      if (updatedUser) {
+        bot.sendMessage(chatId, `Chat ID assigned. Phone Number: ${updatedUser.PhoneNumber}`);
+      } else {
+        bot.sendMessage(chatId, "Failed to assign chat ID.");
+      }
     }
+    else if( user.message ) {
+      bot.sendMessage(chatId, user.message);
+      //TODO : check the validity of the INN with the phone number
+    }
+    else {
+      bot.sendMessage(chatId, "User not found.");
+    }
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(chatId, "An error occurred. Please try again.");
   }
 });
 
