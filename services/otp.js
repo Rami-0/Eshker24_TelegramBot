@@ -62,16 +62,18 @@ class OTPServices {
     }
   }
   static async verifyOtp(token, otp){
-    const _otp = await OTP.findByPk(token);
-    if (!otp) {
-      throw new Error('OTP not found');
-    }
-    if(otp === _otp.otp){
-      await otp.destroy();
-      return "success"
-    }
-    else {
-      return "fail"
+    try{
+
+      const _otp = await OTP.findByPk(token);
+      if (!_otp) {
+        throw new Error('OTP not found');
+      }
+      if(otp === _otp.otp){
+        await _otp.destroy();
+        return "success"
+      }
+    } catch(e) {
+        return "fail " + e.message;
     }
   }
 }

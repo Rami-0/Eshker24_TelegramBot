@@ -49,7 +49,7 @@ bot.on('message', async (msg) => {
     };
 
     try {
-        let user;
+        var user;
         if (msg?.contact) {
             let phoneNumber = msg.contact.phone_number;
             if (!phoneRegex.test(phoneNumber)) {
@@ -71,10 +71,10 @@ bot.on('message', async (msg) => {
                 return bot.sendMessage(chatId, 'Invalid input.', options);
             }
         }
+				console.log(user);
 
         if (user.user && !user.message) {
             const updatedUser = await UserServices.assignChatID(user.user, chatId);
-
             console.log(updatedUser);
             if (updatedUser) {
                 bot.sendMessage(chatId, `Chat ID assigned. Phone Number: ${updatedUser.PhoneNumber}`, options);

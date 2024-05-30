@@ -65,13 +65,13 @@ class UserServices {
 
 	//iside chat
 	static async findByINNOrPhoneNumber(searchString) {
-		console.log(searchString);
 		try {
 			const user = await User.findOne({
 				where: {
 					[Op.or]: [{ INN: searchString }, { PhoneNumber: searchString }],
 				},
 			});
+			console.log(user);
 			if (user.ChatID != null) {
 				return { user: user, message: "User already has a chat ID" };
 			}

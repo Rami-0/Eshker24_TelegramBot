@@ -81,12 +81,12 @@ class UserController {
       const isOtpValid = await OTPServices.verifyOtp(data.token, data.otp); // Function to verify OTP for the user
   
       if (isOtpValid === 'success') {
-        return { success: true };
+        return res.status(200).json({ success: true });
       } else {
-        return { success: false, message: "Invalid OTP" };
+        return res.status(401).json({ success: false, message: "Invalid OTP" });
       }
     } catch (error) {
-      console.error("Error while verifying INN and OTP:", error);
+      console.error("Error while verifying TOKEN:", error);
       throw error;
     }
     }
