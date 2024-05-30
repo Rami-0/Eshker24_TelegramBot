@@ -1,9 +1,7 @@
 const Promise = require("bluebird");
-
 const TelegramBot = require("node-telegram-bot-api");
 require("dotenv").config();
 
-// Manually enable cancellation of promises
 Promise.config({
   cancellation: true,
 });
@@ -15,16 +13,20 @@ const bot = new TelegramBot(TOKEN, {
   polling: true,
 });
 
-// Log chat ID when a message is received
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, "Welcome! Please share your phone number.");
+});
+
 bot.on("message", (msg) => {
   console.log(msg);
   const chatId = msg.chat.id;
-  console.log(`Received a message from chat ID: ${chatId}`);
-  // You can save this chatId to use later or set it to a global variable
+
+  console.log(msg.text);
 });
 
 bot.getMe().then((me) => {
   console.log(`Bot ${me.username} is up and running...`);
 });
 
-module.exports = bot; // Export the bot instance
+module.exports = bot;
