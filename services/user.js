@@ -1,4 +1,4 @@
-const { User } = require('../db/models'); // Import your User model
+const { User } = require("../db/models"); // Import your User model
 
 class UserServices {
   // Function to create a new user
@@ -17,7 +17,7 @@ class UserServices {
       const users = await User.findAll();
       return users;
     } catch (error) {
-      throw new Error('Could not retrieve users');
+      throw new Error("Could not retrieve users");
     }
   }
 
@@ -26,11 +26,11 @@ class UserServices {
     try {
       const user = await User.findByPk(id);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
       return user;
     } catch (error) {
-      throw new Error('Could not retrieve user');
+      throw new Error("Could not retrieve user");
     }
   }
 
@@ -39,12 +39,12 @@ class UserServices {
     try {
       const user = await User.findByPk(id);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
       await user.update(data);
       return user;
     } catch (error) {
-      throw new Error('Could not update user');
+      throw new Error("Could not update user");
     }
   }
 
@@ -53,28 +53,26 @@ class UserServices {
     try {
       const user = await User.findByPk(id);
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
       await user.destroy();
       return user;
     } catch (error) {
-      throw new Error('Could not delete user');
+      throw new Error("Could not delete user");
     }
   }
 
+  //iside chat
   static async findByINNOrPhoneNumber(searchString) {
     try {
       const user = await User.findOne({
         where: {
-          [Op.or]: [
-            { INN: searchString },
-            { PhoneNumber: searchString },
-          ],
+          [Op.or]: [{ INN: searchString }, { PhoneNumber: searchString }],
         },
       });
-      return true;
+      return user;
     } catch (error) {
-      throw new Error('Could not find user');
+      throw new Error("Could not find user");
     }
   }
 
@@ -84,7 +82,7 @@ class UserServices {
       await user.save();
       return user;
     } catch (error) {
-      throw new Error('Could not assign ChatID to user');
+      throw new Error("Could not assign ChatID to user");
     }
   }
 }
