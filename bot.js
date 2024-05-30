@@ -20,7 +20,10 @@ bot.onText(/\/start/, (msg) => {
 	// Create options for the button
 	const options = {
 		reply_markup: JSON.stringify({
-			keyboard: [[{ text: 'Share Phone Number', request_contact: true }], [{ text: 'Share INN' }]],
+			keyboard: [
+				[{ text: 'Share Phone Number', request_contact: true }],
+				[{ text: 'Share INN', request_contact: false }]
+			],
 			resize_keyboard: true,
 		}),
 	};
@@ -30,15 +33,38 @@ bot.onText(/\/start/, (msg) => {
 
 bot.on('message', async (msg) => {
 	const chatId = msg.chat.id;
-	console.log(msg);
+	// console.log(msg);
 
+  const options = {
+		reply_markup: JSON.stringify({
+			keyboard: [
+				[{ text: 'Share Phone Number', request_contact: true }],
+				[{ text: 'Share INN', request_contact: false }]
+			],
+			resize_keyboard: true,
+		}),
+	};
 
 	try {
-		var user;
+		let user;
 		if (msg?.contact) {
-			user = await UserServices.findByINNOrPhoneNumber(msg.contact.phone_number);
+			const phoneNumber = msg.contact.phone_number;
+			if (!phoneNumber.startsWith('+996')) {
+				return;
+			}
+			user = await UserServices.findByINNOrPhoneNumber(phoneNumber);
 		} else {
-			user = await UserServices.findByINNOrPhoneNumber(msg.text);
+			const text = msg.text;
+			const innLength = 13; // Define the valid length for INN
+			const innPattern = /^(2020|2021)\d{9}$/; // Regex pattern to check INN starting with 2020 or 2021 and length of 13
+
+			if (text.startsWith('+996')) {
+				user = await UserServices.findByINNOrPhoneNumber(text);
+			} else if (innPattern.test(text)) {
+				user = await UserServices.findByINNOrPhoneNumber(text);
+			} else {
+				return;
+			}
 		}
 
 		if (user.user && !user.message) {
@@ -46,15 +72,15 @@ bot.on('message', async (msg) => {
 
 			console.log(updatedUser);
 			if (updatedUser) {
-				bot.sendMessage(chatId, `Chat ID assigned. Phone Number: ${updatedUser.PhoneNumber}`);
+				bot.sendMessage(chatId, `Chat ID assigned. Phone Number: ${updatedUser.PhoneNumber}`, options);
 			} else {
-				bot.sendMessage(chatId, 'Failed to assign chat ID.');
+				bot.sendMessage(chatId, 'Failed to assign chat ID.' , options);
 			}
 		} else if (user.message) {
-			bot.sendMessage(chatId, user.message);
-			//TODO : check the validity of the INN with the phone number
+			bot.sendMessage(chatId, user.message , options);
+			// TODO: check the validity of the INN with the phone number
 		} else {
-			bot.sendMessage(chatId, 'User not found.');
+			bot.sendMessage(chatId, 'User not found.' , options);
 		}
 	} catch (error) {
 		console.error(error);
