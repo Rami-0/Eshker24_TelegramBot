@@ -92,6 +92,24 @@ class UserServices {
 			return false;
 		}
 	}
+
+		// Function to get a user by ID
+	static async getUserIdByINNorPhoneNumber(searchString) {
+		try {
+			const user = await User.findOne({
+				where: {
+					[Op.or]: [{ INN: searchString }, { PhoneNumber: searchString }],
+				},
+			});
+			if (!user) {
+				throw new Error('User not found');
+			}
+			return user.id;
+		} catch (error) {
+			throw new Error('Could not retrieve user id');
+		}
+	}
+
 }
 
 module.exports = UserServices;

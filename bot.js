@@ -1,21 +1,21 @@
-const Promise = require('bluebird');
-const TelegramBot = require('node-telegram-bot-api');
-const UserServices = require('./services/user');
-require('dotenv').config();
+const Promise = require("bluebird");
+const TelegramBot = require("node-telegram-bot-api");
+const UserServices = require("./services/user");
+require("dotenv").config();
 
 Promise.config({
-	cancellation: true,
+  cancellation: true,
 });
 
 TelegramBot.Promise = Promise;
 
 const TOKEN = process.env.TG_TOKEN;
 const bot = new TelegramBot(TOKEN, {
-	polling: true,
+  polling: true,
 });
 
 bot.onText(/\/start/, (msg) => {
-	const chatId = msg.chat.id;
+  const chatId = msg.chat.id;
 
 	// Create options for the button
 	const options = {
@@ -28,7 +28,7 @@ bot.onText(/\/start/, (msg) => {
 		}),
 	};
 
-	bot.sendMessage(chatId, 'Welcome! Please choose an option:', options);
+  bot.sendMessage(chatId, "Welcome! Please choose an option:", options);
 });
 
 bot.on('message', async (msg) => {
@@ -89,25 +89,25 @@ bot.on('message', async (msg) => {
 });
 
 bot.getMe().then((me) => {
-	console.log(`Bot ${me.username} is up and running...`);
+  console.log(`Bot ${me.username} is up and running...`);
 });
 
-bot.on('inline_query', (query) => {
-	const results = [
-		{
-			type: 'article',
-			id: '1',
-			title: 'Caps',
-			input_message_content: { message_text: query.query.toUpperCase() },
-		},
-		{
-			type: 'article',
-			id: '2',
-			title: 'Lowercase',
-			input_message_content: { message_text: query.query.toLowerCase() },
-		},
-	];
-	bot.answerInlineQuery(query.id, results);
+bot.on("inline_query", (query) => {
+  const results = [
+    {
+      type: "article",
+      id: "1",
+      title: "Caps",
+      input_message_content: { message_text: query.query.toUpperCase() },
+    },
+    {
+      type: "article",
+      id: "2",
+      title: "Lowercase",
+      input_message_content: { message_text: query.query.toLowerCase() },
+    },
+  ];
+  bot.answerInlineQuery(query.id, results);
 });
 
 module.exports = bot;
