@@ -31,62 +31,71 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, "Welcome! Please choose an option:", options);
 });
 
+const phoneRegex = /^\+996\d{9}$/;
+const innRegex = /^[0-2]\d{13}$/;
+
+
 bot.on('message', async (msg) => {
-	const chatId = msg.chat.id;
-	// console.log(msg);
+    const chatId = msg.chat.id;
 
-  const options = {
-		reply_markup: JSON.stringify({
-			keyboard: [
-				[{ text: 'Share Phone Number', request_contact: true }],
-				[{ text: 'Share INN', request_contact: false }]
-			],
-			resize_keyboard: true,
-		}),
-	};
+    const options = {
+        reply_markup: JSON.stringify({
+            keyboard: [
+                [{ text: 'Share Phone Number', request_contact: true }],
+                [{ text: 'Share INN', request_contact: false }]
+            ],
+            resize_keyboard: true,
+        }),
+    };
 
-	try {
-		let user;
-		if (msg?.contact) {
-			const phoneNumber = msg.contact.phone_number;
-			if (!phoneNumber.startsWith('+996')) {
-				return;
-			}
-			user = await UserServices.findByINNOrPhoneNumber(phoneNumber);
-		} else {
-			const text = msg.text;
-			const innLength = 13; // Define the valid length for INN
-			const innPattern = /^(2020|2021)\d{9}$/; // Regex pattern to check INN starting with 2020 or 2021 and length of 13
+    try {
+        let user;
+        if (msg?.contact) {
+            let phoneNumber = msg.contact.phone_number;
+            if (!phoneRegex.test(phoneNumber)) {
+                return bot.sendMessage(chatId, 'Invalid phone number format. Please provide a valid phone number.', options);
+            }
+            user = await UserServices.findByINNOrPhoneNumber(phoneNumber);
+        } else {
+            let text = msg.text;
+            // Ensure phone number format starts with '+'
+            if (text.startsWith('996')) {
+                text = `+${text}`;
+            }
 
-			if (text.startsWith('+996')) {
-				user = await UserServices.findByINNOrPhoneNumber(text);
-			} else if (innPattern.test(text)) {
-				user = await UserServices.findByINNOrPhoneNumber(text);
-			} else {
-				return;
-			}
-		}
+            if (phoneRegex.test(text)) {
+                user = await UserServices.findByINNOrPhoneNumber(text);
+            } else if (innRegex.test(text)) {
+                user = await UserServices.findByINNOrPhoneNumber(text);
+            } else {
+                return bot.sendMessage(chatId, 'Invalid input.', options);
+            }
+        }
 
-		if (user.user && !user.message) {
-			const updatedUser = await UserServices.assignChatID(user.user, chatId);
+        if (user.user && !user.message) {
+            const updatedUser = await UserServices.assignChatID(user.user, chatId);
 
-			console.log(updatedUser);
-			if (updatedUser) {
-				bot.sendMessage(chatId, `Chat ID assigned. Phone Number: ${updatedUser.PhoneNumber}`, options);
-			} else {
-				bot.sendMessage(chatId, 'Failed to assign chat ID.' , options);
-			}
-		} else if (user.message) {
-			bot.sendMessage(chatId, user.message , options);
-			// TODO: check the validity of the INN with the phone number
-		} else {
-			bot.sendMessage(chatId, 'User not found.' , options);
-		}
-	} catch (error) {
-		console.error(error);
-		bot.sendMessage(chatId, 'An error occurred. Please try again.');
-	}
+            console.log(updatedUser);
+            if (updatedUser) {
+                bot.sendMessage(chatId, `Chat ID assigned. Phone Number: ${updatedUser.PhoneNumber}`, options);
+            } else {
+                bot.sendMessage(chatId, 'Failed to assign chat ID.', options);
+            }
+        } else if (user.message) {
+            bot.sendMessage(chatId, user.message, options);
+            // TODO: check the validity of the INN with the phone number
+        } else {
+            bot.sendMessage(chatId, 'User not found.', options);
+        }
+    } catch (error) {
+        console.error(error);
+        bot.sendMessage(chatId, 'An error occurred. Please try again.');
+    }
 });
+
+
+
+
 
 bot.getMe().then((me) => {
   console.log(`Bot ${me.username} is up and running...`);
