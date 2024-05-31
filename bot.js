@@ -55,7 +55,7 @@ bot.on('message', async (msg) => {
             if (!phoneRegex.test(phoneNumber)) {
                 return bot.sendMessage(chatId, 'Invalid phone number format. Please provide a valid phone number.', options);
             }
-            user = await UserServices.findByINNOrPhoneNumber(phoneNumber);
+            user = await UserServices.findByINN(phoneNumber);
         } else {
             let text = msg.text;
             // Ensure phone number format starts with '+'
@@ -64,9 +64,9 @@ bot.on('message', async (msg) => {
             }
 
             if (phoneRegex.test(text)) {
-                user = await UserServices.findByINNOrPhoneNumber(text);
+                user = await UserServices.findByINN(text);
             } else if (innRegex.test(text)) {
-                user = await UserServices.findByINNOrPhoneNumber(text);
+                user = await UserServices.findByINN(text);
             } else {
                 return bot.sendMessage(chatId, 'Invalid input.', options);
             }

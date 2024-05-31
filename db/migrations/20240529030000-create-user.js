@@ -14,11 +14,6 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      PhoneNumber: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true,
-      },
       ChatID: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -32,6 +27,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
+      },
+      Auth: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
     });
   },

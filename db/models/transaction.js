@@ -5,8 +5,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    OTPTime: {
-      type: DataTypes.DATE,
+    expiry: {
+      type: DataTypes.DATE, // min
       allowNull: true,
     },
     CurrentTime: {

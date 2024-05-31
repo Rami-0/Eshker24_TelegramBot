@@ -12,12 +12,8 @@ module.exports = {
       OTP: {
         type: Sequelize.STRING,
         allowNull: true,
-				validate: {
-					isInt: true, // Checks if the value is an integer
-					min: 1, // Ensures the value is at least 1 (positive integer)
-				},
       },
-      OTPTime: {
+      expiry: {
         type: Sequelize.DATE,
         allowNull: true,
       },

@@ -7,6 +7,20 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       primaryKey: true,
     },
+    expiry: {
+      type: DataTypes.DATE, // Assuming this is the expiry date for the OTP
+      allowNull: true,
+    },
+    status_flag: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    CurrentTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
     User_id: {
       type: DataTypes.STRING,
       allowNull: false,

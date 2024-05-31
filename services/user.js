@@ -64,18 +64,15 @@ class UserServices {
 	}
 
 	//iside chat
-	static async findByINNOrPhoneNumber(searchString) {
+	static async findByINN(searchString) {
 		try {
 			const user = await User.findOne({
-				where: {
-					[Op.or]: [{ INN: searchString }, { PhoneNumber: searchString }],
-				},
+				where: { INN: searchString },
 			});
-			console.log(user);
 			if (user.ChatID != null) {
-				return { user: user, message: "User already has a chat ID" };
+				return { user: user, message: 'User already has a chat ID' };
 			}
-			return {user: user};
+			return { user: user };
 		} catch (error) {
 			console.log(error);
 			return false;
@@ -93,13 +90,11 @@ class UserServices {
 		}
 	}
 
-		// Function to get a user by ID
-	static async getUserIdByINNorPhoneNumber(searchString) {
+	// Function to get a user by ID
+	static async getUserIdByINN(searchString) {
 		try {
 			const user = await User.findOne({
-				where: {
-					[Op.or]: [{ INN: searchString }, { PhoneNumber: searchString }],
-				},
+				where: { INN: searchString },
 			});
 			if (!user) {
 				throw new Error('User not found');
@@ -109,7 +104,6 @@ class UserServices {
 			throw new Error('Could not retrieve user id');
 		}
 	}
-
 }
 
 module.exports = UserServices;

@@ -3,11 +3,10 @@ const Router = require("express");
 const router = new Router();
 
 const userController = require("../controller/user.controller");
+const authMiddleware = require('../middlewares/authMiddleware');
 
-router.get("/users", (req, res) => {
-  res.send("User route");
-});
 
+router.post("/init", userController.init);
 /**
  * Generates a One-Time Password (OTP) and sends it to the user for registration.
  * 
@@ -22,9 +21,8 @@ router.get("/users", (req, res) => {
  *  - There is an internal server error during OTP generation or message sending (500 Internal Server Error).
  *  - The chat ID is not set for the user (400 Bad Request).
  */
-router.post("/regestration/otp", userController.createOTP);
-router.post("/regestration/verification", userController.VerifyOTP);
+router.post('/registration/otp', authMiddleware, userController.createOTP);
+router.post('/registration/verification', authMiddleware, userController.VerifyOTP);
 
-router.post("/init", userController.init);
 
 module.exports = router;
