@@ -3,10 +3,10 @@ const UserServices = require('../services/user');
 const authMiddleware = async (req, res, next) => {
   try {
     const Auth = req.headers.authorization.split(' ')[1];
-    const { INN } = String(req.body);
+    const { INN } = req.body;
 
     // Fetch user data based on INN
-    const req_data = await UserServices.findByINN(INN);
+    const req_data = await UserServices.findByINN(String(INN));
     if (req_data && req_data.user) {
       const user = req_data.user;
 
