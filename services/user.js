@@ -104,6 +104,18 @@ class UserServices {
 			throw new Error('Could not retrieve user id');
 		}
 	}
+
+	static async findByChatID(chatID) {
+		try {
+			const user = await User.findOne({
+				where: { ChatID: String(chatID) },
+			});
+			return user;
+		} catch (error) {
+			throw new Error('Could not retrieve user by ChatID');
+		}
+	}
+	
 }
 
 module.exports = UserServices;
