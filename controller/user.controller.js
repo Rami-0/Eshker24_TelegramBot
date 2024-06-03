@@ -1,7 +1,9 @@
 const speakeasy = require('speakeasy');
-const bot = require('../bot');
 const UserServices = require('../services/user');
 const OTPServices = require('../services/otp');
+const { sendMessage } = require('../api/api');
+const base64 = require('base-64');
+
 class UserController {
 	static async createOTP(req, res) {
 		try {
@@ -14,7 +16,7 @@ class UserController {
 
 			try {
 				const req_data = await UserServices.findByINN(INN);
-				console.log(req_data);
+				// console.log(req_data);
 				if (req_data && req_data.user) {
 					chatId = req_data.user.ChatID;
 					user = req_data.user;
@@ -41,7 +43,8 @@ class UserController {
 					const message = `Your OTP code is: ${code}`;
 
 					// Send message to the user
-					await bot.sendMessage(chatId, message);
+					await sendMessage(chatId, message);
+
 					res.status(200).json({ otp: code, expiry: expiryDate });
 				} catch (sendError) {
 					console.error('Error sending message or creating OTP:', sendError);
@@ -79,7 +82,6 @@ class UserController {
 			otp: req.body.otp,
 		};
 
-		
 		try {
 			const req_data = await UserServices.findByINN(data.INN);
 			const User_id = req_data.user.id;
@@ -96,6 +98,62 @@ class UserController {
 			throw error;
 		}
 	}
+
+	static async registerUser(req, res) {
+		console.log(req.body);
+		const userData = {
+			INN: req.body.INN,
+			password: req.body.password,
+			chatId: req.body.chatId,
+		};
+		let user;
+		try {
+			const req_data = await UserServices.findByINN(userData.INN);
+			if (req_data) {
+				user = req_data.user;
+				const decoded_auth = base64.decode(req_data.user.Auth);
+				console.log(decoded_auth);
+				const Auth = decoded_auth.split(':')[1];
+
+				if (Auth !== userData.password) {
+					// Assuming the Auth should match the provided password
+					res.status(401).json({ error: 'Incorrect Password' });
+					return;
+				}
+			} else {
+				res.status(404).json({ error: 'User not found' });
+				return;
+			}
+
+			try {
+				await UserServices.assignChatID(user, userData.chatId); // Wait for the promise
+				res.status(200).json({ success: 'User registered successfully' });
+			} catch (err) {
+				console.error(err);
+				res.status(400).json({ error: err.message });
+			}
+		} catch (err) {
+			console.error('Error while verifying INN:', err);
+			res.status(500).json({ error: 'Internal server error' });
+		}
+	}
+
+	static async checkIfUserHasRegisteredChat(req, res){
+		const { chatId } = req.body;
+		try {
+			const req_data = await UserServices.findByChatID(chatId);
+			if (req_data) {
+				if (req_data.ChatID) {
+					return res.status(200).json({ success: true });
+				} 
+			} else {
+				return res.status(404).json({ error: 'User not found' });
+			}
+		} catch (error) {
+			console.error('Error finding the user:', error);
+			return res.status(500).json({ error: 'Internal Server Error' });
+		}
+	} 
 }
 
 module.exports = UserController;
