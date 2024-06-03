@@ -138,14 +138,12 @@ class UserController {
 		}
 	}
 
-	static async checkIfUserHasRegisteredChat(req, res){
-		const { chatId } = req.body;
+	static async checkIfUserHasRegisteredChat(req, res) {
+		const { chatId } = req.query;
 		try {
 			const req_data = await UserServices.findByChatID(chatId);
-			if (req_data) {
-				if (req_data.ChatID) {
-					return res.status(200).json({ success: true });
-				} 
+			if (req_data && req_data.ChatID) {
+				return res.status(200).json({ success: true });
 			} else {
 				return res.status(404).json({ error: 'User not found' });
 			}
@@ -153,7 +151,7 @@ class UserController {
 			console.error('Error finding the user:', error);
 			return res.status(500).json({ error: 'Internal Server Error' });
 		}
-	} 
+	}
 }
 
 module.exports = UserController;
