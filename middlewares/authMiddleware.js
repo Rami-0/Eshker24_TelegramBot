@@ -1,30 +1,35 @@
 const UserServices = require('../services/user');
+const base64 = require('base-64');
+
+const AllowedUsers = {
+	'M-I': '1234',
+	'P-I': '12345',
+	'M-R': '123456',
+	'P-R': '1234567',
+};
 
 const authMiddleware = async (req, res, next) => {
-  try {
-    const Auth = req.headers.authorization.split(' ')[1];
-    const { INN } = req.body;
+	try {
+		const authHeader = req.headers.authorization;
+		if (!authHeader || !authHeader.startsWith('Basic ')) {
+			return res.status(401).json({ error: 'Unauthorized: No authorization header provided' });
+		}
 
-    // Fetch user data based on INN
-    const req_data = await UserServices.findByINN(String(INN));
-    if (req_data && req_data.user) {
-      const user = req_data.user;
+		const base64Credentials = authHeader.split(' ')[1];
+		const credentials =  base64.decode(base64Credentials);
+		const [username, password] = credentials.split(':');
 
-      // Check if Auth matches
-      if (user.Auth !== Auth) {
-        return res.status(401).json({ error: 'Unauthorized: Auth token does not match'}); 
-      }
+		// Check if the username is in the AllowedUsers and the password matches
+		if (AllowedUsers[username] !== password) {
+			return res.status(401).json({ error: 'Unauthorized: Invalid username or password' });
+		}
 
-      // Attach user data to request object for use in next middleware/controller
-      req.user = user;
-      next();
-    } else {
-      return res.status(404).json({ error: 'User not found' });
-    }
-  } catch (error) {
-    console.error('Error finding the user:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
+    next();
+
+	} catch (error) {
+		console.error('Error finding the user:', error);
+		return res.status(500).json({ error: 'Internal Server Error' });
+	}
 };
 
 module.exports = authMiddleware;
