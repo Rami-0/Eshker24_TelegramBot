@@ -1,6 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 require('dotenv').config();
 const UserServices = require('./services/user');
+const messages = require('./constants/messages');
 
 if (process.env.TG_TOKEN === undefined) {
 	console.error('TG_TOKEN is not defined! add an environment variable named TG_TOKEN with your bot token as value.');
@@ -22,18 +23,21 @@ bot.on('message', async (msg) => {
 
 	if (text === '/start') {
 		const user = await UserServices.findByChatID(chatId);
+		let lang = 'en'; // Default language
+
 		if (user) {
-			bot.sendMessage(chatId, 'Welcome back!', {
+			lang = user.language || lang;
+			bot.sendMessage(chatId, messages[lang].welcomeBack, {
 				reply_markup: {
-					inline_keyboard: [[{ text: 'About us', web_app: { url: webAppUrl + 'about' } }], [{ text: 'Help', web_app: { url: webAppUrl + 'help' } }], [{ text: 'Complain', web_app: { url: webAppUrl + 'complain' } }]],
+					inline_keyboard: [[{ text: messages[lang].aboutUs, web_app: { url: webAppUrl + 'about' } }], [{ text: messages[lang].help, web_app: { url: webAppUrl + 'help' } }], [{ text: messages[lang].complain, web_app: { url: webAppUrl + 'complain' } }]],
 					one_time_keyboard: true,
 					resize_keyboard: true,
 				},
 			});
 		} else {
-			await bot.sendMessage(chatId, 'Fill the form', {
+			await bot.sendMessage(chatId, messages[lang].fillForm, {
 				reply_markup: {
-					inline_keyboard: [[{ text: 'Visit Website', web_app: { url: webAppUrl } }]],
+					inline_keyboard: [[{ text: messages[lang].visitWebsite, web_app: { url: webAppUrl } }]],
 					one_time_keyboard: true,
 					resize_keyboard: true,
 				},
