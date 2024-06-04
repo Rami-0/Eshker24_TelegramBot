@@ -4,7 +4,7 @@ const router = new Router();
 
 const userController = require('../controller/user.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
-const serverMiddleware = require('../middlewares/ServerMiddleware');
+const serverMiddleware = require('../middlewares/serverMiddleware');
 
 router.post('/init', userController.init);
 /**
