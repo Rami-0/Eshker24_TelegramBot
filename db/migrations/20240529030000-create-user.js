@@ -32,6 +32,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      lang: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        defaultValue: 'ru',
+      }
+  
     });
   },
   async down(queryInterface, Sequelize) {

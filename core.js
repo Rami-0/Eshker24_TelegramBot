@@ -1,7 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 require('dotenv').config();
 const UserServices = require('./services/user');
-const messages = require('./constants/messages');
+const { messages } = require('./constants/messages');
 
 if (process.env.TG_TOKEN === undefined) {
 	console.error('TG_TOKEN is not defined! add an environment variable named TG_TOKEN with your bot token as value.');
@@ -23,10 +23,11 @@ bot.on('message', async (msg) => {
 
 	if (text === '/start') {
 		const user = await UserServices.findByChatID(chatId);
-		let lang = 'en'; // Default language
+		let lang = 'ru'; // Default language
 
 		if (user) {
-			lang = user.language || lang;
+			lang = user.lang || lang;
+			console.log(user);
 			bot.sendMessage(chatId, messages[lang].welcomeBack, {
 				reply_markup: {
 					inline_keyboard: [[{ text: messages[lang].aboutUs, web_app: { url: webAppUrl + 'about' } }], [{ text: messages[lang].help, web_app: { url: webAppUrl + 'help' } }], [{ text: messages[lang].complain, web_app: { url: webAppUrl + 'complain' } }]],
