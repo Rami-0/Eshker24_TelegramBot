@@ -11,6 +11,7 @@ const AllowedUsers = {
 const authMiddleware = async (req, res, next) => {
 	try {
 		const authHeader = req.headers.authorization;
+		console.log(authHeader)
 		if (!authHeader || !authHeader.startsWith('Basic ')) {
 			return res.status(401).json({ error: 'Unauthorized: No authorization header provided' });
 		}

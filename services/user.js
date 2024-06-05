@@ -110,12 +110,26 @@ class UserServices {
 			const user = await User.findOne({
 				where: { ChatID: String(chatID) },
 			});
-			return user;
+			if (user){
+				return user;
+			}else{
+				return false;
+			}
 		} catch (error) {
 			throw new Error('Could not retrieve user by ChatID');
 		}
 	}
-	
+	static async updateUserLang(chatId, lang) {
+		try {
+			const user = await User.findOne({
+				where: { ChatID: String(chatId) },
+			});
+			await user.update({...user, lang: lang});
+			return user;
+		} catch (error) {
+			throw new Error(`Error updating user language: ${error.message}`);
+		}
+	}
 }
 
 module.exports = UserServices;

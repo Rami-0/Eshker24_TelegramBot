@@ -6,7 +6,7 @@ const userController = require('../controller/user.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
 const serverMiddleware = require('../middlewares/serverMiddleware');
 
-router.post('/init', userController.init);
+router.post('/init', authMiddleware, userController.init);
 /**
  * Generates a One-Time Password (OTP) and sends it to the user for registration.
  *
