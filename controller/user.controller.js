@@ -62,17 +62,18 @@ class UserController {
 
 	static async init(req, res) {
 		const userData = {
-			Auth: req.headers.authorization.split(' ')[1],
+			// Auth: req.headers.authorization.split(' ')[1],
 			INN: req.body.INN,
+			Auth:req.body.pin
 		};
 		try {
 			// TODO: Encrypt the Authorization Before saving it to the database
 			const send = await UserServices.createUser(userData); // Use `await` to wait for the promise
 			console.log(send);
-			res.status(200).json({ success: 'User created successfully' });
+			res.status(200).json({ success: 'User created successfully' ,	status:200 });
 		} catch (err) {
 			console.log(err);
-			res.status(400).json({ error: err.message });
+			res.status(400).json({ error: err.message , status:400 });
 		}
 	}
 
@@ -89,9 +90,9 @@ class UserController {
 			const isOtpValid = await OTPServices.verifyOtp(User_id, data.otp); // Function to verify OTP for the user
 
 			if (isOtpValid === 'success') {
-				return res.status(200).json({ success: true });
+				return res.status(200).json({ success: true , status:200});
 			} else {
-				return res.status(400).json({ success: false, message: isOtpValid });
+				return res.status(400).json({ success: false, message: isOtpValid , status:400 });
 			}
 		} catch (error) {
 			console.error('Error while verifying INN:', error);
@@ -117,24 +118,24 @@ class UserController {
 
 				if (Auth !== userData.password) {
 					// Assuming the Auth should match the provided password
-					res.status(401).json({ error: 'Incorrect Password' });
+					res.status(401).json({ error: 'Incorrect Password' , status:401});
 					return;
 				}
 			} else {
-				res.status(404).json({ error: 'User not found' });
+				res.status(404).json({ error: 'User not found' , status:404 });
 				return;
 			}
 
 			try {
 				await UserServices.assignChatID(user, userData.chatId); // Wait for the promise
-				res.status(200).json({ success: 'User registered successfully' });
+				res.status(200).json({ success: 'User registered successfully' , status:200 });
 			} catch (err) {
 				console.error(err);
-				res.status(400).json({ error: err.message });
+				res.status(400).json({ error: err.message, status:400 });
 			}
 		} catch (err) {
 			console.error('Error while verifying INN:', err);
-			res.status(500).json({ error: 'Internal server error' });
+			res.status(500).json({ error: 'Internal server error', status:500 });
 		}
 	}
 
@@ -143,13 +144,13 @@ class UserController {
 		try {
 			const req_data = await UserServices.findByChatID(chatId);
 			if (req_data && req_data.ChatID) {
-				return res.status(200).json({ success: true });
+				return res.status(200).json({ success: true , status:200});
 			} else {
-				return res.status(404).json({ error: 'User not found' });
+				return res.status(404).json({ error: 'User not found', status:404 });
 			}
 		} catch (error) {
 			console.error('Error finding the user:', error);
-			return res.status(500).json({ error: 'Internal Server Error' });
+			return res.status(500).json({ error: 'Internal Server Error', status:500 });
 		}
 	}
 }
