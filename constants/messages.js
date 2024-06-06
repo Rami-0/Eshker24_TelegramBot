@@ -10,7 +10,10 @@ const messages = {
         selectLang: 'Select Language',
         lang_has_been_set: 'Your language preference has been set to',
         changeLang: 'Change Language',
-        points: 'Serving points - RSK'
+        points: 'Serving points - RSK',
+        unknownCommand: 'Sorry, I do not recognize this command.',
+        error: 'An error occurred while processing your request. Please try again later.',
+        onlyCommands: 'Sorry, I only understand commands.'
     },
     ky: {
         welcomeBack: 'Кош келиңиз!',
@@ -23,7 +26,10 @@ const messages = {
         selectLang: 'Тилди тандоо',
         lang_has_been_set: 'Сиздин тил тандооңуз орнотулду',
         changeLang: 'Тилди алмаштыруу',
-        points: 'ДАРЕКТЕРИ БӨЛҮМДӨРДҮН'
+        points: 'ДАРЕКТЕРИ БӨЛҮМДӨРДҮН',
+        unknownCommand: 'Кечиресиз, мен бул буйрукту тааныбайм.',
+        error: 'Суранычты иштетүүдө ката кетти. Кийинчерээк кайра аракет кылыңыз.',
+        onlyCommands: 'Кечиресиз, мен буйруктарды гана түшүнөм.'
     },
     ru: {
         welcomeBack: 'Добро пожаловать обратно!',
@@ -36,7 +42,10 @@ const messages = {
         selectLang: 'Выберите язык',
         lang_has_been_set: 'Ваш язык установлен на',
         changeLang: 'Изменить язык',
-        points: 'Точки обслуживания - РСК Банк'
+        points: 'Точки обслуживания - РСК Банк',
+        unknownCommand: 'Извините, я не узнаю эту команду.',
+        error: 'Во время обработки Вашего запроса произошла ошибка. Пожалуйста, повторите попытку позже.',
+        onlyCommands: 'Извините, я понимаю только команды.'
     },
     // Add more languages as needed
 };

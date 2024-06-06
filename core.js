@@ -13,6 +13,7 @@ const webAppUrl = 'https://tg-react-webapp.vercel.app/';
 const token = process.env.TG_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 const mainLanguage = 'ru'
+const ourCommands = ['/start', '/changelang']
 
 bot.on('polling_error', (msg) => console.log(msg));
 
@@ -32,7 +33,7 @@ bot.on('message', async (msg) => {
         }
     } else {
         try {
-            await handleNonCommand(chatId);
+            await handleNonCommand(chatId, text);
         } catch (e) {
             console.error(`Error from non-command message: ${e}`);
         }
@@ -40,6 +41,10 @@ bot.on('message', async (msg) => {
 });
 
 async function handleCommand(chatId, text) {
+    if (!ourCommands.includes(text)) {
+        const user = await UserServices.findByChatID(chatId);
+        return await bot.sendMessage(chatId, messages[user?.lang || mainLanguage].unknownCommand);
+    }
     try {
         const user = await UserServices.findByChatID(chatId);
         if (user) {
@@ -64,7 +69,7 @@ async function handleUserCommand(chatId, text, user) {
             await changeLanguage(chatId, user);
             break;
         default:
-            await bot.sendMessage(chatId, 'Sorry, I do not recognize that command.');
+            await bot.sendMessage(chatId, messages[user?.lang || mainLanguage].unknownCommand);
             break;
     }
 }
@@ -78,7 +83,7 @@ async function handleNonUserCommand(chatId, text) {
             await changeLanguage(chatId);
             break;
         default:
-            await bot.sendMessage(chatId, 'Sorry, I do not recognize that command.');
+            await bot.sendMessage(chatId, messages[mainLanguage].unknownCommand);
             break;
     }
 }
@@ -97,7 +102,7 @@ async function handleStartCommand(chatId, user = null) {
         }
     } catch (e) {
         console.error(`Error handling /start command: ${e}`);
-        await bot.sendMessage(chatId, 'An error occurred while processing your request. Please try again later.');
+        await bot.sendMessage(chatId, messages[mainLanguage].error);
     }
 }
 
@@ -130,8 +135,8 @@ async function sendFillFormMessage(chatId, lang) {
     });
 }
 
-async function handleNonCommand(chatId) {
-    await bot.sendMessage(chatId, 'Sorry, I only understand commands.');
+async function handleNonCommand(chatId, text) {
+    await bot.sendMessage(chatId, messages[mainLanguage].onlyCommands);
 }
 
 bot.on('callback_query', async (callbackQuery) => {
@@ -152,7 +157,6 @@ bot.on('callback_query', async (callbackQuery) => {
             await sendRegisteredUserMenu(chatId, user?.lang || mainLanguage);
         }
         else {
-            console.log(tempUser)
             sendFillFormMessage(chatId, tempUser.lang)
         }
     }
