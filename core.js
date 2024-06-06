@@ -152,12 +152,12 @@ bot.on('callback_query', async (callbackQuery) => {
         } else {
             tempUser = await TempUserServices.addTempUser(chatId, data);
         }
-        await bot.sendMessage(chatId, `${messages[data].lang_has_been_set} ${data}.`);
+        await bot.sendMessage(chatId, `${messages[data].lang_has_been_set}.`);
         if (user) {
             await sendRegisteredUserMenu(chatId, user?.lang || mainLanguage);
         }
         else {
-            sendFillFormMessage(chatId, tempUser.lang)
+            sendFillFormMessage(chatId, tempUser?.lang || data || mainLanguage)
         }
     }
 });
