@@ -130,6 +130,25 @@ class UserServices {
 			throw new Error(`Error updating user language: ${error.message}`);
 		}
 	}
+
+	static async updatePassword(INN, password, repeatPassword){
+		try {
+      const user = await User.findOne({
+        where: { INN: INN },
+      });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      if (password!== repeatPassword) {
+        throw new Error('Passwords do not match');
+      }
+      await user.update({...user, Auth:  password});
+      return true;
+    } catch (error) {
+      throw new Error(`Error updating user password: ${error.message}`);
+			return false;
+    }
+	}
 }
 
 module.exports = UserServices;

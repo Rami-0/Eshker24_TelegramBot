@@ -26,7 +26,6 @@ router.post('/init', authMiddleware, userController.init);
  * Generates a One-Time Password (OTP) and sends it to the user for registration.
  *
  * @param {string} req.body.INN - The user's INN (Individual Taxpayer Identification Number).
- * @param {string} req.body.PhoneNumber - The user's phone number.
  *
  * @returns {JSON} - Returns a JSON object with the following properties:
  *  - message: The OTP message sent to the user.
@@ -53,6 +52,7 @@ router.get('/registration', serverMiddleware, userController.checkIfUserHasRegis
  * @param {string} req.body.INN - The INN (taxpayer identification number) of the user.
  * @param {string} req.body.password - The password of the user.
  * @param {string} req.body.chatId - The chat ID to be assigned to the user.
+ * @param {string} req.body.lang - The chat ID to be assigned to the user.
  * @param {Object} res - The response object to send the response to the client.
  * @returns {200, 401, 404}
  * 
@@ -86,5 +86,9 @@ router.get('/registration', serverMiddleware, userController.checkIfUserHasRegis
  */
 
 router.post('/registration', serverMiddleware, userController.registerUser);
+
+router.put('/registration', serverMiddleware, userController.updatePassword);
+
+
 
 module.exports = router;

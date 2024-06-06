@@ -118,10 +118,11 @@ async function sendRegisteredUserMenu(chatId, lang) {
 
 async function sendFillFormMessage(chatId, lang) {
     console.log(lang)
+    let webAppUrlWithLang = `${webAppUrl}?lang=${lang}`; // append lang as a query parameter
     await bot.sendMessage(chatId, messages[lang].fillForm, {
         reply_markup: {
             inline_keyboard: [
-                [{ text: messages[lang].visitWebsite, web_app: { url: webAppUrl }}]
+                [{ text: messages[lang].visitWebsite, web_app: { url: webAppUrlWithLang }}] // use the modified URL
             ],
             one_time_keyboard: true,
             resize_keyboard: true,

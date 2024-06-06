@@ -106,16 +106,17 @@ class UserController {
 			INN: req.body.INN,
 			password: req.body.password,
 			chatId: req.body.chatId,
+			lang: req.body.lang,
 		};
 		let user;
 		try {
 			const req_data = await UserServices.findByINN(userData.INN);
 			if (req_data) {
 				user = req_data.user;
-				const decoded_auth = base64.decode(req_data.user.Auth);
-				console.log(decoded_auth);
-				const Auth = decoded_auth.split(':')[1];
-
+				// const decoded_auth = base64.decode(req_data.user.Auth);
+				// console.log(decoded_auth);
+				// const Auth = decoded_auth.split(':')[1];
+				const Auth = req_data.user?.Auth
 				if (Auth !== userData.password) {
 					// Assuming the Auth should match the provided password
 					res.status(401).json({ error: 'Incorrect Password' , status:401});
@@ -127,6 +128,7 @@ class UserController {
 			}
 
 			try {
+				user.lang = userData.lang;
 				await UserServices.assignChatID(user, userData.chatId); // Wait for the promise
 				res.status(200).json({ success: 'User registered successfully' , status:200 });
 			} catch (err) {
@@ -151,6 +153,25 @@ class UserController {
 		} catch (error) {
 			console.error('Error finding the user:', error);
 			return res.status(500).json({ error: 'Internal Server Error', status:500 });
+		}
+	}
+
+	static async updatePassword(req, res) {
+		const { INN, password, repeatPassword } = req.body;
+		try
+		{
+			const req_data = await UserServices.updatePassword(INN, password, repeatPassword);
+			if(req_data){
+				return res.status(200).json({ success: true , status:200 });
+			}
+			else {
+				return res.status(404).json({ error: 'User not found', status:404 });
+			}
+		}
+		catch(e){
+			console.log(e);
+      res.status(400).json({ error: e.message, status:400 });
+      return;
 		}
 	}
 }
