@@ -19,12 +19,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     Auth: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     lang: {
       type: DataTypes.STRING,
       allowNull: true,
-    }
+    }, 
+    loggedIn: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    }  
   }, {});
 
   User.associate = function(models) {

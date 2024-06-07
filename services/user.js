@@ -1,7 +1,37 @@
-const { User } = require('../db/models'); // Import your User model
+const { User, OTP } = require('../db/models'); // Import your User model
 const { Op } = require('sequelize');
 
 class UserServices {
+	static async CreateUserWithINN(INN, chatId, code, expiryDate){ 
+		try {
+      const user = await this.createUser({INN, ChatID: chatId});
+      if (user) {
+        // generate a code
+        await OTP.create({
+          otp: code,
+          User_id: user.id,
+          expiry: expiryDate,
+        });
+        return code;
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Could not create user ${error}`);
+    } 
+	}
+	
+	static async verify_user(user){
+		try {
+      if (user) {
+				await user.update({...user, loggedIn : true});
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Could not create user ${error}`);
+    }
+	}
 	// Function to create a new user
 	static async createUser(data) {
 		try {
@@ -69,7 +99,7 @@ class UserServices {
 			const user = await User.findOne({
 				where: { INN: searchString },
 			});
-			if (user.ChatID != null) {
+			if (user.ChatID != null && user.loggedIn) {
 				return { user: user, message: 'User already has a chat ID' };
 			}
 			return { user: user };
@@ -83,6 +113,7 @@ class UserServices {
 	static async assignChatID(user, chatID) {
 		try {
 			user.ChatID = chatID;
+			user.loggedIn = true
 			await user.save();
 			return user;
 		} catch (error) {
@@ -110,7 +141,7 @@ class UserServices {
 			const user = await User.findOne({
 				where: { ChatID: String(chatID) },
 			});
-			if (user){
+			if (user.loggedIn){
 				return user;
 			}else{
 				return false;
@@ -142,7 +173,7 @@ class UserServices {
       if (password!== repeatPassword) {
         throw new Error('Passwords do not match');
       }
-      await user.update({...user, Auth:  password});
+      await user.update({...user, Auth:  password });
       return true;
     } catch (error) {
       throw new Error(`Error updating user password: ${error.message}`);

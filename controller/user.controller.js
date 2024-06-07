@@ -5,11 +5,67 @@ const { sendMessage } = require('../api/api');
 const base64 = require('base-64');
 
 class UserController {
+	static async setAuth(req, res){
+		try {
+      const { INN, chatId } = req.body;
+      const req_data = await UserServices.findByINN(INN);
+      if (!req_data) {
+				const secret = speakeasy.generateSecret({ length: 8 });
+				const code = speakeasy.totp({
+					secret: secret.base32,
+					encoding: 'base32',
+				});
+				const expiryInSec = 1000;
+				const expiryDate = new Date(Date.now() + expiryInSec * 1000);
+				const CreateUnregisterdUser = await UserServices.CreateUserWithINN(INN, chatId, code, expiryDate);
+				res.status(200).json({CreateUnregisterdUser});
+				return;
+      } 
+			else if(req_data.user.ChatID === chatId){
+					res.status(300).json();
+					return;
+			} 
+			else if (req_data.message){
+				res.status(400).json({message: "user already registered on a diffrent account want to change that?"});
+				return;
+			}
+			res.status(400).json({});
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+	}
+
+	static async VerifyOTP_fromIshkerSide(req, res) {
+		const data = {
+			INN: req.body.INN,
+			otp: req.body.otp,
+			Chat_ID: req.body.Chat_ID
+		};
+		try {
+			const req_data = await UserServices.findByINN(data.INN);
+			const User_id = req_data.user.id;
+			// Assuming you have a method to verify OTP
+			const isOtpValid = await OTPServices.verifyOtp(User_id, data.otp); // Function to verify OTP for the user
+
+			if (isOtpValid === 'success') {
+				const verify_user = await UserServices.verify_user(req_data.user);
+				return res.status(200).json({ success: true , status:200});
+			} else {
+				return res.status(400).json({ success: false, message: isOtpValid , status:400 });
+			}
+		} catch (error) {
+			console.error('Error while verifying INN:', error);
+			throw error;
+		}
+
+
+	}
 	static async createOTP(req, res) {
 		try {
 			const { INN, expiry } = req.body;
-			const expiryInMinutes = expiry || 3;
-			const expiryDate = new Date(Date.now() + expiryInMinutes * 60 * 1000);
+			const expiryInSec = expiry || 180;
+			const expiryDate = new Date(Date.now() + expiryInSec * 1000);
 
 			let chatId;
 			let user;
@@ -17,6 +73,9 @@ class UserController {
 			try {
 				const req_data = await UserServices.findByINN(INN);
 				// console.log(req_data);
+				if(!req_data.loggedIn) {
+					res.status(403).json();
+				}
 				if (req_data && req_data.user) {
 					chatId = req_data.user.ChatID;
 					user = req_data.user;
@@ -129,6 +188,7 @@ class UserController {
 
 			try {
 				user.lang = userData.lang;
+				user.loggedIn = true;
 				await UserServices.assignChatID(user, userData.chatId); // Wait for the promise
 				res.status(200).json({ success: 'User registered successfully' , status:200 });
 			} catch (err) {

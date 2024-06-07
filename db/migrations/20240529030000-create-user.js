@@ -17,6 +17,7 @@ module.exports = {
       ChatID: {
         type: Sequelize.STRING,
         allowNull: true,
+        unique: true,
       },
       createdAt: {
         allowNull: false,
@@ -30,14 +31,18 @@ module.exports = {
       },
       Auth: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       lang: {
         type: Sequelize.STRING,
         allowNull: true,
         defaultValue: 'ru',
+      },
+      loggedIn: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       }
-  
     });
   },
   async down(queryInterface, Sequelize) {
