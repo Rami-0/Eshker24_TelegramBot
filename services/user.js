@@ -12,7 +12,7 @@ class UserServices {
           User_id: user.id,
           expiry: expiryDate,
         });
-        return code;
+        return {code,expiryDate};
       } else {
         throw new Error('User not found');
       }
@@ -32,6 +32,24 @@ class UserServices {
       throw new Error(`Could not create user ${error}`);
     }
 	}
+
+	static async updateUserAndCreateOTP(INN, chatId, code, expiryDate) {
+  try {
+    const { user, message } = await this.findByINN(INN);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    await user.update({ ChatID: chatId, INN });
+    await OTP.create({
+      otp: code,
+      User_id: user.id,
+      expiry: expiryDate,
+    });
+    return {code, expiryDate};
+  } catch (error) {
+    throw new Error(`Could not update user and create OTP: ${error.message}`);
+  }
+}
 	// Function to create a new user
 	static async createUser(data) {
 		try {
@@ -138,19 +156,28 @@ class UserServices {
 
 	static async findByChatID(chatID) {
 		try {
+			// Ensure chatID is a string for comparison
 			const user = await User.findOne({
 				where: { ChatID: String(chatID) },
 			});
-			if (user.loggedIn){
+	
+			// Log the user object for debugging purposes
+			console.log(`User found for ChatID ${chatID}:`, user);
+	
+			// Check if user exists and is logged in
+			if (user && user.loggedIn) {
 				return user;
-			}else{
-				return false;
+			} else {
+				// Return null if the user is not found or not logged in
+				return null;
 			}
 		} catch (error) {
+			// Log the detailed error for debugging
+			console.error(`Database error retrieving user by ChatID ${chatID}:`, error);
 			throw new Error('Could not retrieve user by ChatID');
 		}
 	}
-	static async updateUserLang(chatId, lang) {
+		static async updateUserLang(chatId, lang) {
 		try {
 			const user = await User.findOne({
 				where: { ChatID: String(chatId) },

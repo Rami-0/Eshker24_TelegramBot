@@ -13,7 +13,8 @@ const messages = {
         points: 'Serving points - RSK',
         unknownCommand: 'Sorry, I do not recognize this command.',
         error: 'An error occurred while processing your request. Please try again later.',
-        onlyCommands: 'Sorry, I only understand commands.'
+        onlyCommands: 'Sorry, I only understand commands.',
+        loginWithIshker: 'Login with Ishker24'
     },
     ky: {
         welcomeBack: 'Кош келиңиз!',
@@ -29,7 +30,8 @@ const messages = {
         points: 'ДАРЕКТЕРИ БӨЛҮМДӨРДҮН',
         unknownCommand: 'Кечиресиз, мен бул буйрукту тааныбайм.',
         error: 'Суранычты иштетүүдө ката кетти. Кийинчерээк кайра аракет кылыңыз.',
-        onlyCommands: 'Кечиресиз, мен буйруктарды гана түшүнөм.'
+        onlyCommands: 'Кечиресиз, мен буйруктарды гана түшүнөм.',
+        loginWithIshker: 'Login with Ishker24   kyrgyz'
     },
     ru: {
         welcomeBack: 'Добро пожаловать обратно!',
@@ -45,7 +47,8 @@ const messages = {
         points: 'Точки обслуживания - РСК Банк',
         unknownCommand: 'Извините, я не узнаю эту команду.',
         error: 'Во время обработки Вашего запроса произошла ошибка. Пожалуйста, повторите попытку позже.',
-        onlyCommands: 'Извините, я понимаю только команды.'
+        onlyCommands: 'Извините, я понимаю только команды.',
+        loginWithIshker: 'Login with Ishker24   Russian'
     },
     // Add more languages as needed
 };

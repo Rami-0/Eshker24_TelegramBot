@@ -21,6 +21,8 @@ bot.getMe().then((me) => {
     console.log(`Bot ${me.username} is up and running...`);
 });
 
+
+
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
@@ -41,11 +43,21 @@ bot.on('message', async (msg) => {
 });
 
 async function handleCommand(chatId, text) {
+    // Check if the command is in our known commands list
     if (!ourCommands.includes(text)) {
-        const user = await UserServices.findByChatID(chatId);
-        return await bot.sendMessage(chatId, messages[user?.lang || mainLanguage].unknownCommand);
+        try {
+            const user = await UserServices.findByChatID(chatId);
+            console.log(user);
+            await bot.sendMessage(chatId, messages[user?.lang || mainLanguage].unknownCommand);
+        } catch (e) {
+            console.error(`Error finding user for unknown command: ${e}`);
+            await bot.sendMessage(chatId, messages[mainLanguage].error);
+        }
+        return; // Return early since the command is not recognized
     }
+
     try {
+        // Fetch user details once
         const user = await UserServices.findByChatID(chatId);
         if (user) {
             await handleUserCommand(chatId, text, user);
@@ -54,9 +66,7 @@ async function handleCommand(chatId, text) {
         }
     } catch (e) {
         console.error(`Error handling command: ${e}`);
-        await bot.sendAnimation(chatId,)
-        // await bot.sendMessage(chatId, 'An error occurred while processing your request. handleCommand.');
-
+        await bot.sendMessage(chatId, messages[mainLanguage].error);    
     }
 }
 
@@ -122,12 +132,13 @@ async function sendRegisteredUserMenu(chatId, lang) {
 }
 
 async function sendFillFormMessage(chatId, lang) {
-    console.log(lang)
+    console.log(lang);
     let webAppUrlWithLang = `${webAppUrl}?lang=${lang}`; // append lang as a query parameter
     await bot.sendMessage(chatId, messages[lang].fillForm, {
         reply_markup: {
             inline_keyboard: [
-                [{ text: messages[lang].visitWebsite, web_app: { url: webAppUrlWithLang }}] // use the modified URL
+                [{ text: messages[lang].visitWebsite, web_app: { url: webAppUrlWithLang }}], // Correctly structured row
+                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrl + 'set_auth/' + `?lang=${lang}` }}] // Correctly structured row
             ],
             one_time_keyboard: true,
             resize_keyboard: true,

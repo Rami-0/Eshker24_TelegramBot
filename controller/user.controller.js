@@ -3,6 +3,7 @@ const UserServices = require('../services/user');
 const OTPServices = require('../services/otp');
 const { sendMessage } = require('../api/api');
 const base64 = require('base-64');
+const { statusCodes } = require('../constants/statusCode');
 
 class UserController {
 	static async setAuth(req, res){
@@ -18,18 +19,37 @@ class UserController {
 				const expiryInSec = 1000;
 				const expiryDate = new Date(Date.now() + expiryInSec * 1000);
 				const CreateUnregisterdUser = await UserServices.CreateUserWithINN(INN, chatId, code, expiryDate);
-				res.status(200).json({CreateUnregisterdUser});
+				res.status(200).json({...CreateUnregisterdUser});
 				return;
       } 
-			else if(req_data.user.ChatID === chatId){
-					res.status(300).json();
-					return;
-			} 
 			else if (req_data.message){
 				res.status(400).json({message: "user already registered on a diffrent account want to change that?"});
 				return;
 			}
-			res.status(400).json({});
+			else if(req_data.user.ChatID === chatId){
+				const secret = speakeasy.generateSecret({ length: 8 });
+				const code = speakeasy.totp({
+					secret: secret.base32,
+					encoding: 'base32',
+				});
+				const expiryInSec = 1000;
+				const expiryDate = new Date(Date.now() + expiryInSec * 1000);
+				const updateUser = await UserServices.updateUserAndCreateOTP(INN, chatId, code ,expiryDate)
+				res.status(300).json({...updateUser});
+				return;
+			} 
+			else{
+				const secret = speakeasy.generateSecret({ length: 8 });
+				const code = speakeasy.totp({
+					secret: secret.base32,
+					encoding: 'base32',
+				});
+				const expiryInSec = 1000;
+				const expiryDate = new Date(Date.now() + expiryInSec * 1000);
+				const data = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
+				res.status(200).json({...data});
+				return;
+			}
     } catch (error) {
       console.error('Error updating user:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -37,33 +57,37 @@ class UserController {
 	}
 
 	static async VerifyOTP_fromIshkerSide(req, res) {
-		const data = {
-			INN: req.body.INN,
-			otp: req.body.otp,
-			Chat_ID: req.body.Chat_ID
-		};
-		try {
-			const req_data = await UserServices.findByINN(data.INN);
-			const User_id = req_data.user.id;
-			// Assuming you have a method to verify OTP
-			const isOtpValid = await OTPServices.verifyOtp(User_id, data.otp); // Function to verify OTP for the user
+  const data = {
+    INN: req.body.INN,
+    otp: req.body.otp,
+    Chat_ID: req.body.Chat_ID
+  };
 
-			if (isOtpValid === 'success') {
-				const verify_user = await UserServices.verify_user(req_data.user);
-				return res.status(200).json({ success: true , status:200});
-			} else {
-				return res.status(400).json({ success: false, message: isOtpValid , status:400 });
-			}
-		} catch (error) {
-			console.error('Error while verifying INN:', error);
-			throw error;
-		}
+  try {
+    const req_data = await UserServices.findByINN(data.INN);
+    const User_id = req_data.user.id;
 
+    if (data.Chat_ID === req_data.user.ChatID) {
+      const isOtpValid = await OTPServices.verifyOtp(User_id, data.otp); // Function to verify OTP for the user
 
-	}
+      if (isOtpValid === 'success') {
+        const verify_user = await UserServices.verify_user(req_data.user);
+				sendMessage(data.Chat_ID, "\u2705")
+        return res.status(200).json({ success: true, status: 200 });
+      } else {
+        return res.status(400).json({ success: false, isOtpValid: isOtpValid, status: 400 });
+      }
+    } else {
+      return res.status(400).json({ success: false, isOtpValid: 'Invalid Chat ID', status: 400 });
+    }
+  } catch (error) {
+    console.error('Error while verifying INN:', error);
+    return res.status(500).json({ error: 'Internal Server Error', status: 500 });
+  }
+}
 	static async createOTP(req, res) {
 		try {
-			const { INN, expiry } = req.body;
+			const { INN, expiry, message } = req.body;
 			const expiryInSec = expiry || 180;
 			const expiryDate = new Date(Date.now() + expiryInSec * 1000);
 
@@ -72,21 +96,23 @@ class UserController {
 
 			try {
 				const req_data = await UserServices.findByINN(INN);
-				// console.log(req_data);
-				if(!req_data.loggedIn) {
-					res.status(403).json();
+				if (!req_data?.user) {
+					return res.status(404).json({ error: 'User not found' });
+				}
+				if(!req_data.user.loggedIn) {
+					res.status(403).json(req_data.user.loggedIn);
+					return;
 				}
 				if (req_data && req_data.user) {
 					chatId = req_data.user.ChatID;
 					user = req_data.user;
 				} else {
-					res.status(404).json({ error: 'User not found' });
-					return;
+					return res.status(404).json({ error: 'User not found' });
+					
 				}
 			} catch (error) {
 				console.error('Error finding the user:', error);
-				res.status(500).json({ error: 'Internal Server Error' });
-				return;
+				return res.status(500).json({ error: 'Internal Server Error' });
 			}
 
 			if (chatId) {
@@ -99,10 +125,10 @@ class UserController {
 				try {
 					const AddOtp = await OTPServices.createOTP({ User_id: user.id, otp: code, expiry: expiryDate });
 
-					const message = `Your OTP code is: ${code}`;
+					const send = `${ message ? message : '' } \nYour OTP code is: ${code}`;
 
 					// Send message to the user
-					await sendMessage(chatId, message);
+					await sendMessage(chatId, send);
 
 					res.status(200).json({ otp: code, expiry: expiryDate });
 				} catch (sendError) {
@@ -154,8 +180,9 @@ class UserController {
 				return res.status(400).json({ success: false, message: isOtpValid , status:400 });
 			}
 		} catch (error) {
+
 			console.error('Error while verifying INN:', error);
-			throw error;
+			return res.status(500).json({ error: 'Internal Server Error' });
 		}
 	}
 
