@@ -19,6 +19,7 @@
     "password": "root",
     "database": "node_postgres_prod",
     "host": "db",
+    "port": 5432,
     "dialect": "postgres"
   }
 }

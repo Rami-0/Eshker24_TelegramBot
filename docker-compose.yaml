@@ -35,7 +35,7 @@ services:
       - '8080:8080'
     depends_on:
       - db
-    command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'sh', '-c', 'tail -f /dev/null']
+    command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'npm', 'start']
     environment:
       DATABASE_URL: postgres://postgres:root@db:5432/node_postgres
     networks:
