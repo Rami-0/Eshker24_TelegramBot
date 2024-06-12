@@ -15,6 +15,9 @@ const statusCodes = {
   USER_ALREADY_LOGGED_IN: { code: 12, message: "User already logged in" },
   FAILED_TO_SEND_OTP: { code: 13, message: "Failed to send OTP" },
   FORBIDDEN: { code: 14, message: "User is not logged in" },
+  UNAUTHORIZED: { code: 15, message: "Unauthorized: No authorization header provided" },
+  UNAUTHORIZED_KEY: { code: 16, message: "Unauthorized: INVALID KEY" },
+  USER_DELETED : { code: 17, message: "User deleted" },
 };
 
 module.exports = { statusCodes };

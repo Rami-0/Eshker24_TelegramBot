@@ -2,6 +2,19 @@ const { User, OTP } = require('../db/models'); // Import your User model
 const { Op } = require('sequelize');
 
 class UserServices {
+
+	static async DeleteUserConnection(INN, chatId){
+		try {
+      const user = await User.findOne({ where: { INN, ChatID: chatId } });
+      if (user) {
+        await user.destroy();
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Could not create user ${error}`);
+    }
+	}
 	static async CreateUserWithINN(INN, chatId, code, expiryDate){ 
 		try {
       const user = await this.createUser({INN, ChatID: chatId});
