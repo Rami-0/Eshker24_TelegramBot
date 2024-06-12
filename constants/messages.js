@@ -21,34 +21,34 @@ const messages = {
         fillForm: 'Форманы толтуруңуз',
         aboutUs: 'Биз жөнүндө',
         help: 'Жардам',
-        contacts: 'Байланыштар',
-        complain: 'Айрым',
-        visitWebsite: 'Вебсайтка кириңиз',
+        contacts: 'Байланышуу',
+        complain: 'Айрым даттануу калтыруу',
+        visitWebsite: 'Веб-сайтка кириңиз',
         selectLang: 'Тилди тандоо',
-        lang_has_been_set: 'Сиздин тил тандооңуз орнотулду Kyrgyz',
+        lang_has_been_set: 'Сиздин тил тандооңуз орнотулду',
         changeLang: 'Тилди алмаштыруу',
         points: 'ДАРЕКТЕРИ БӨЛҮМДӨРДҮН',
         unknownCommand: 'Кечиресиз, мен бул буйрукту тааныбайм.',
         error: 'Суранычты иштетүүдө ката кетти. Кийинчерээк кайра аракет кылыңыз.',
         onlyCommands: 'Кечиресиз, мен буйруктарды гана түшүнөм.',
-        loginWithIshker: 'Login with Ishker24   kyrgyz'
+        loginWithIshker: 'Ишкер24 аркылуу катталуу   '
     },
     ru: {
-        welcomeBack: 'Добро пожаловать обратно!',
+        welcomeBack: 'Добро пожаловать !',
         fillForm: 'Заполните форму',
         aboutUs: 'О нас',
         help: 'Помощь',
         contacts: 'Контакты',
-        complain: 'Жалоба',
+        complain: 'Оставить жалобу',
         visitWebsite: 'Посетить сайт',
         selectLang: 'Выберите язык',
-        lang_has_been_set: 'Ваш язык установлен на Russian',
+        lang_has_been_set: 'Был установлен Русский язык',
         changeLang: 'Изменить язык',
         points: 'Точки обслуживания - РСК Банк',
         unknownCommand: 'Извините, я не узнаю эту команду.',
         error: 'Во время обработки Вашего запроса произошла ошибка. Пожалуйста, повторите попытку позже.',
         onlyCommands: 'Извините, я понимаю только команды.',
-        loginWithIshker: 'Login with Ishker24   Russian'
+        loginWithIshker: 'Регистрация с помощью Ишкер24'
     },
     // Add more languages as needed
 };
