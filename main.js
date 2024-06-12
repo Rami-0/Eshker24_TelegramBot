@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const bot = require("./core.js");
+require('./migrate.js');
 
 
 const cors = require("cors");
