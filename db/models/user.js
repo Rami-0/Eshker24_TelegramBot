@@ -17,10 +17,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true,
     },
-    Auth: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     lang: {
       type: DataTypes.STRING,
       allowNull: true,

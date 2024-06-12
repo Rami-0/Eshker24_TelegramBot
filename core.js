@@ -133,12 +133,11 @@ async function sendRegisteredUserMenu(chatId, lang) {
 
 async function sendFillFormMessage(chatId, lang) {
     console.log(lang);
-    let webAppUrlWithLang = `${webAppUrl}?lang=${lang}`; // append lang as a query parameter
+    let webAppUrlWithLang = `${webAppUrl}set_auth/?lang=${lang}`; // append lang as a query parameter
     await bot.sendMessage(chatId, messages[lang].fillForm, {
         reply_markup: {
             inline_keyboard: [
-                [{ text: messages[lang].visitWebsite, web_app: { url: webAppUrlWithLang }}], // Correctly structured row
-                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrl + 'set_auth/' + `?lang=${lang}` }}] // Correctly structured row
+                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrl }}]
             ],
             one_time_keyboard: true,
             resize_keyboard: true,

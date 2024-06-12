@@ -4,20 +4,6 @@ const router = new Router();
 
 const userController = require('../controller/user.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
-const serverMiddleware = require('../middlewares/serverMiddleware');
-
-/**
- * Инициализировать сессию пользователя.
- * @param {Object} req - Объект запроса.
- *    @body {string} INN - ИНН пользователя.
- *    @body {string} pin - Пин-код для аутентификации пользователя.
- * @param {Object} res - Объект ответа.
- * @returns {Object} - status { code , message }
- *    @returns {number} 0 - Если сессия пользователя успешно инициализирована.
- *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
- */
-
-router.post('/init', authMiddleware, userController.init);
 
 /**
  * Создать OTP для пользователя.
@@ -80,15 +66,8 @@ router.put('/user/verification', authMiddleware, userController.VerifyOTP_fromIs
 
 router.delete('/user/delete', authMiddleware, userController.DeleteUserConnection)
 
-// for webApp. 
+router.put('/user/activate', authMiddleware, userController.ActivateUser);
 
-router.get('/registration', serverMiddleware, userController.checkIfUserHasRegisteredChat);
-
-router.post('/registration', serverMiddleware, userController.registerUser);
-
-router.put('/registration', serverMiddleware, userController.updatePassword);
-
-router.post('/set_auth', serverMiddleware, userController.setAuth);
-
+router.put('/user/deactivate', authMiddleware, userController.DeactivateUser);
 
 module.exports = router;

@@ -6,6 +6,70 @@ const base64 = require('base-64');
 const { statusCodes } = require('../constants/statusCode');
 
 class UserController {
+  static async ActivateUser(INN){
+    try{
+      const req_data = await UserServices.findByINN(INN);
+      if (!req_data) {
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      } else if (req_data.user.ChatID) {
+        if(req_data.user.loggedIn === false){
+          await UserServices.ActivateUser(INN);
+          res.status(200).json({ status: statusCodes.USER_ACTIVATED });
+          return;
+        }
+        else if(req_data.user.loggedIn === true){
+          res.status(201).json({ status: statusCodes.USER_ALREADY_ACTIVATED });
+        }
+      }
+      else if(req_data.user.ChatID == null){
+        res.status(400).json({ status: statusCodes.USER_IS_NOT_REGISTERED });
+        return;
+      }
+      else{
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      }
+    }
+    catch (err) {
+      res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+      return;
+    }  
+  }
+  static async DeactivateUser(INN){
+    try{
+      const req_data = await UserServices.findByINN(INN);
+      if (!req_data) {
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      } else if (req_data.user.ChatID) {
+        if(req_data.user.loggedIn === true){
+          await UserServices.DeactivateUser(INN);
+          res.status(200).json({ status: statusCodes.USER_DEACTIVATED });
+          return;
+        }
+        else if(req_data.user.loggedIn === false){
+          res.status(201).json({ status: statusCodes.USER_ALREADY_DEACTIVATED });
+        }
+      }
+      else if(req_data.user.ChatID == null){
+        res.status(400).json({ status: statusCodes.USER_IS_NOT_REGISTERED });
+        return;
+      }
+      else{
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      }
+    }
+    catch (err) {
+      res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+      return;
+    }  
+  }
+
+  static async GetUserData(INN){
+
+  }
   static async DeleteUserConnection(req, res) {
     try {
       const { INN, Chat_ID } = req.body;
@@ -163,21 +227,6 @@ class UserController {
     }
   }
 
-  static async init(req, res) {
-    const userData = {
-      INN: req.body.INN,
-      Auth: req.body.pin
-    };
-    try {
-      const send = await UserServices.createUser(userData);
-      console.log(send);
-      res.status(200).json({ success: 'User created successfully', status: statusCodes.OK });
-    } catch (err) {
-      console.log(err);
-      res.status(400).json({ error: err.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
   static async VerifyOTP(req, res) {
     const data = {
       INN: req.body.INN,
@@ -197,75 +246,6 @@ class UserController {
     } catch (error) {
       console.error('Error while verifying INN:', error);
       return res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async registerUser(req, res) {
-    console.log(req.body);
-    const userData = {
-      INN: req.body.INN,
-      password: req.body.password,
-      chatId: req.body.chatId,
-      lang: req.body.lang,
-    };
-    let user;
-    try {
-      const req_data = await UserServices.findByINN(userData.INN);
-      if (req_data) {
-        user = req_data.user;
-        const Auth = req_data.user?.Auth;
-        if (Auth !== userData.password) {
-          res.status(401).json({ error: statusCodes.INVALID_PASSWORD.message, status: statusCodes.INVALID_PASSWORD });
-          return;
-        }
-      } else {
-        res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-        return;
-      }
-
-      try {
-        user.lang = userData.lang;
-        user.loggedIn = true;
-        await UserServices.assignChatID(user, userData.chatId);
-        res.status(200).json({ success: statusCodes.USER_REGISTERED.message, status: statusCodes.USER_REGISTERED });
-      } catch (err) {
-        console.error(err);
-        res.status(400).json({ error: err.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-      }
-    } catch (err) {
-      console.error('Error while verifying INN:', err);
-      res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async checkIfUserHasRegisteredChat(req, res) {
-    const { chatId } = req.query;
-    try {
-      const req_data = await UserServices.findByChatID(chatId);
-      if (req_data && req_data.ChatID) {
-        return res.status(200).json({ success: true, status: statusCodes.OK });
-      } else {
-        return res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-      }
-    } catch (error) {
-      console.error('Error finding the user:', error);
-      return res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async updatePassword(req, res) {
-    const { INN, password, repeatPassword } = req.body;
-    try {
-      const req_data = await UserServices.updatePassword(INN, password, repeatPassword);
-      if (req_data) {
-        return res.status(200).json({ success: true, status: statusCodes.PASSWORD_UPDATED });
-      } else {
-        return res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-      }
-    } catch (e) {
-      console.log(e);
-      res.status(400).json({ error: e.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-      return;
     }
   }
 }

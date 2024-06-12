@@ -3,6 +3,35 @@ const { Op } = require('sequelize');
 
 class UserServices {
 
+	static async DeactivateUser(INN){
+		try {
+      const user = await User.findOne({ where: { INN } });
+      if (user) {
+        user.loggedIn = false;
+				await user.save();
+				return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+	}
+	
+	static async ActivateUser(INN){
+		try {
+      const user = await User.findOne({ where: { INN } });
+      if (user) {
+        user.loggedIn = true;
+        await user.save();
+        return true;
+      } else {
+				return false;
+			}
+    } catch (error) {
+      return false;
+    }
+	}
 	static async DeleteUserConnection(INN, chatId){
 		try {
       const user = await User.findOne({ where: { INN, ChatID: chatId } });
@@ -63,16 +92,6 @@ class UserServices {
     throw new Error(`Could not update user and create OTP: ${error.message}`);
   }
 }
-	// Function to create a new user
-	static async createUser(data) {
-		try {
-			const user = await User.create(data);
-			return user;
-		} catch (error) {
-			throw new Error(`Could not create user ${error}`);
-		}
-	}
-
 	// Function to get all users
 	static async getAllUsers() {
 		try {
