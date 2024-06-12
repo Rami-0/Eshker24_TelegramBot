@@ -4,72 +4,91 @@ const router = new Router();
 
 const userController = require('../controller/user.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
-const serverMiddleware = require('../middlewares/ServerMiddleware');
+const serverMiddleware = require('../middlewares/serverMiddleware');
 
-router.post('/init', userController.init);
 /**
- * Generates a One-Time Password (OTP) and sends it to the user for registration.
- *
- * @param {string} req.body.INN - The user's INN (Individual Taxpayer Identification Number).
- * @param {string} req.body.PhoneNumber - The user's phone number.
- *
- * @returns {JSON} - Returns a JSON object with the following properties:
- *  - message: The OTP message sent to the user.
- *
- * @throws {HTTPError} - Returns an appropriate HTTP error response if:
- *  - The user is not found based on the provided INN or phone number (404 Not Found).
- *  - There is an internal server error during OTP generation or message sending (500 Internal Server Error).
- *  - The chat ID is not set for the user (400 Bad Request).
+ * Инициализировать сессию пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ *    @body {string} pin - Пин-код для аутентификации пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 0 - Если сессия пользователя успешно инициализирована.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
  */
-router.post('/registration/otp', authMiddleware, userController.createOTP);
-router.post('/registration/verification', authMiddleware, userController.VerifyOTP);
+
+router.post('/init', authMiddleware, userController.init);
+
+/**
+ * Создать OTP для пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ *    @body {number} [expiry=180] - Время истечения срока действия OTP в секундах. --необязательный
+ *    @body {string} [message] - Сообщение для отправки вместе с OTP. --необязательный
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 8 - Если OTP успешно отправлено.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 14 - Если пользователь не вошел в систему.
+ *    @returns {number} 4 - Если ID чата недействителен.
+ *    @returns {number} 13 - Если возникла ошибка при отправке OTP.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
+
+router.post('/user/otp', authMiddleware, userController.createOTP);
+
+/**
+ * Проверить предоставленный пользователем OTP.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ *    @body {string} otp - OTP, предоставленный пользователем.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 0 - Если OTP успешно проверен.
+ *    @returns {number} 5 - Если проверка OTP не удалась.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
+
+router.post('/user/verification', authMiddleware, userController.VerifyOTP);
+
+/**
+ * Проверка OTP со стороны Ishker.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ *    @body {string} otp - OTP, предоставленный пользователем.
+ *    @body {string} Chat_ID - ID чата пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 0 - Если OTP успешно проверен.
+ *    @returns {number} 5 - Если проверка OTP не удалась.
+ *    @returns {number} 4 - Если ID чата недействителен.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
+
+router.put('/user/verification', authMiddleware, userController.VerifyOTP_fromIshkerSide);
+
+/**
+ * Удалить подключение пользователя на основе ИНН и ID чата.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ *    @body {string} Chat_ID - ID чата пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 17 - Если пользователь успешно удален.
+ */
+
+router.delete('/user/delete', authMiddleware, userController.DeleteUserConnection)
 
 // for webApp. 
 
-/**
- * @returns {boolean} - Returns true if the user is registered, otherwise false. 
- */
 router.get('/registration', serverMiddleware, userController.checkIfUserHasRegisteredChat);
 
-/**
- * Registers a user by verifying their INN and password, and assigns a chat ID if the verification is successful.
- * 
- * @async
- * @param {string} req.body.INN - The INN (taxpayer identification number) of the user.
- * @param {string} req.body.password - The password of the user.
- * @param {string} req.body.chatId - The chat ID to be assigned to the user.
- * @param {Object} res - The response object to send the response to the client.
- * @returns {200, 401, 404}
- * 
- * @throws {Error} - Throws an error if there is an issue during the process.
- * 
- * @example
- * // Sample request body
- * {
- *   "INN": "123456789",
- *   "password": "userpassword",
- *   "chatId": "chat123"
- * }
- * 
- * // Sample success response
- * {
- *   "success": "User registered successfully"
- * }
- * 
- * // Sample error responses
- * {
- *   "error": "Incorrect Password"
- * }
- * 
- * {
- *   "error": "User not found"
- * }
- * 
- * {
- *   "error": "Internal server error"
- * }
- */
-
 router.post('/registration', serverMiddleware, userController.registerUser);
+
+router.put('/registration', serverMiddleware, userController.updatePassword);
+
+router.post('/set_auth', serverMiddleware, userController.setAuth);
+
 
 module.exports = router;

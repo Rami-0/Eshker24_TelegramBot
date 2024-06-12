@@ -11,7 +11,8 @@ const serverMiddleware = async (req, res, next) => {
 		// Attach user data to request object for use in next middleware/controller
 		next();
 	} catch (error) {
-		return res.status(500).json({ error: 'Internal Server Error' });
+		next();
+		// return res.status(500).json({ error: 'Internal Server Error' });
 	}
 };
 

@@ -1,7 +1,68 @@
-const { User } = require('../db/models'); // Import your User model
+const { User, OTP } = require('../db/models'); // Import your User model
 const { Op } = require('sequelize');
 
 class UserServices {
+
+	static async DeleteUserConnection(INN, chatId){
+		try {
+      const user = await User.findOne({ where: { INN, ChatID: chatId } });
+      if (user) {
+        await user.destroy();
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Could not create user ${error}`);
+    }
+	}
+	static async CreateUserWithINN(INN, chatId, code, expiryDate){ 
+		try {
+      const user = await this.createUser({INN, ChatID: chatId});
+      if (user) {
+        // generate a code
+        await OTP.create({
+          otp: code,
+          User_id: user.id,
+          expiry: expiryDate,
+        });
+        return {code,expiryDate};
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Could not create user ${error}`);
+    } 
+	}
+	
+	static async verify_user(user){
+		try {
+      if (user) {
+				await user.update({...user, loggedIn : true});
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      throw new Error(`Could not create user ${error}`);
+    }
+	}
+
+	static async updateUserAndCreateOTP(INN, chatId, code, expiryDate) {
+  try {
+    const { user, message } = await this.findByINN(INN);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    await user.update({ ChatID: chatId, INN });
+    await OTP.create({
+      otp: code,
+      User_id: user.id,
+      expiry: expiryDate,
+    });
+    return {code, expiryDate};
+  } catch (error) {
+    throw new Error(`Could not update user and create OTP: ${error.message}`);
+  }
+}
 	// Function to create a new user
 	static async createUser(data) {
 		try {
@@ -69,7 +130,7 @@ class UserServices {
 			const user = await User.findOne({
 				where: { INN: searchString },
 			});
-			if (user.ChatID != null) {
+			if (user.ChatID != null && user.loggedIn) {
 				return { user: user, message: 'User already has a chat ID' };
 			}
 			return { user: user };
@@ -83,6 +144,7 @@ class UserServices {
 	static async assignChatID(user, chatID) {
 		try {
 			user.ChatID = chatID;
+			user.loggedIn = true
 			await user.save();
 			return user;
 		} catch (error) {
@@ -107,15 +169,57 @@ class UserServices {
 
 	static async findByChatID(chatID) {
 		try {
+			// Ensure chatID is a string for comparison
 			const user = await User.findOne({
 				where: { ChatID: String(chatID) },
 			});
-			return user;
+	
+			// Log the user object for debugging purposes
+			console.log(`User found for ChatID ${chatID}:`, user);
+	
+			// Check if user exists and is logged in
+			if (user && user.loggedIn) {
+				return user;
+			} else {
+				// Return null if the user is not found or not logged in
+				return null;
+			}
 		} catch (error) {
+			// Log the detailed error for debugging
+			console.error(`Database error retrieving user by ChatID ${chatID}:`, error);
 			throw new Error('Could not retrieve user by ChatID');
 		}
 	}
-	
+		static async updateUserLang(chatId, lang) {
+		try {
+			const user = await User.findOne({
+				where: { ChatID: String(chatId) },
+			});
+			await user.update({...user, lang: lang});
+			return user;
+		} catch (error) {
+			throw new Error(`Error updating user language: ${error.message}`);
+		}
+	}
+
+	static async updatePassword(INN, password, repeatPassword){
+		try {
+      const user = await User.findOne({
+        where: { INN: INN },
+      });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      if (password!== repeatPassword) {
+        throw new Error('Passwords do not match');
+      }
+      await user.update({...user, Auth:  password });
+      return true;
+    } catch (error) {
+      throw new Error(`Error updating user password: ${error.message}`);
+			return false;
+    }
+	}
 }
 
 module.exports = UserServices;
