@@ -37,7 +37,7 @@ services:
       - db
     command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'npm', 'start']
     environment:
-      DATABASE_URL: postgres://postgres:root@db:5432/node_postgres
+      DATABASE_URL: postgresql://postgres:LwFOeUvgxsmBmeBFoBpeudpscGwuFQck@monorail.proxy.rlwy.net:12135/railway
     networks:
       - app-network
 
