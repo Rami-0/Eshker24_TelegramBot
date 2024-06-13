@@ -6,7 +6,6 @@ const { statusCodes } = require('../constants/statusCode');
 const logger = require('../utils/logger');
 
 class UserController {
-
   static async spamUsersAction(req, res) {
   try {
     const { INNs, message } = req.body; // Expecting INNs to be an array of INN strings
@@ -218,7 +217,32 @@ class UserController {
     }
   }
 
-  //todo add a new end point to handel changing the chat with INN and Chat-id. 
+  static async update_chat_id(req, res){
+    const { INN, chatId, new_chat_id } = req.body
+    try{
+      const req_data = await UserServices.SelectUserByChatIdAndINN(INN, chatId);
+      if (req_data){
+        const secret = speakeasy.generateSecret({ length: 8 });
+        const code = speakeasy.totp({
+          secret: secret.base32,
+          encoding: 'base32',
+        });
+        const expiryInSec = 1000;
+        const expiryDate = new Date(Date.now() + expiryInSec * 1000);
+        const update_chat_id = await UserServices.updateUserAndCreateOTP(INN, new_chat_id, code, expiryDate);
+        if (update_chat_id){
+          res.status(200).json({ ...update_chat_id, status: statusCodes.OK });
+        }
+      }
+      else{
+        res.status(400).json({ status: statusCodes.INVALID_REQUEST });
+      }
+    } 
+    catch (error){
+      logger.error(`Error updating chat id for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+      res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
+    }
+  }
 
   static async VerifyOTP_fromIshkerSide(req, res) {
     const data = {

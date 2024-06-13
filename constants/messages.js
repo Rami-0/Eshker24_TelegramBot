@@ -14,7 +14,8 @@ const messages = {
         unknownCommand: 'Sorry, I do not recognize this command.',
         error: 'An error occurred while processing your request. Please try again later.',
         onlyCommands: 'Sorry, I only understand commands.',
-        loginWithIshker: 'Login with Ishker24'
+        loginWithIshker: 'Login with Ishker24',
+        ChangeTelegramUserID: "Change Telegram User ID"
     },
     ky: {
         welcomeBack: 'Кош келиңиз!',
@@ -31,7 +32,8 @@ const messages = {
         unknownCommand: 'Кечиресиз, мен бул буйрукту тааныбайм.',
         error: 'Суранычты иштетүүдө ката кетти. Кийинчерээк кайра аракет кылыңыз.',
         onlyCommands: 'Кечиресиз, мен буйруктарды гана түшүнөм.',
-        loginWithIshker: 'Ишкер24 аркылуу катталуу   '
+        loginWithIshker: 'Ишкер24 аркылуу катталуу   ',
+        ChangeTelegramUserID: "Telegram колдонуучунун ID өзгөртүү"
     },
     ru: {
         welcomeBack: 'Добро пожаловать !',
@@ -48,7 +50,8 @@ const messages = {
         unknownCommand: 'Извините, я не узнаю эту команду.',
         error: 'Во время обработки Вашего запроса произошла ошибка. Пожалуйста, повторите попытку позже.',
         onlyCommands: 'Извините, я понимаю только команды.',
-        loginWithIshker: 'Регистрация с помощью Ишкер24'
+        loginWithIshker: 'Регистрация с помощью Ишкер24',
+        ChangeTelegramUserID: "Изменить Telegram User ID"
     },
     // Add more languages as needed
 };

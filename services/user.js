@@ -3,6 +3,16 @@ const { Op } = require('sequelize');
 
 class UserServices {
 
+	static async SelectUserByChatIdAndINN(INN, chatId) {
+		try {
+      const user = await User.findOne({ where: { INN, ChatID: chatId } });
+      return user;
+    } catch (error) {
+      console.error('Error finding user:', error);
+      throw new Error('Error finding user');
+    }
+	}
+
 	static async findLoggedInUsersByINNs(INNs) {
     try {
       const users = await User.findAll({
@@ -96,7 +106,7 @@ class UserServices {
     if (!user) {
       throw new Error('User not found');
     }
-    await user.update({ ChatID: chatId, INN, loggedIn: false });
+    await user.update({ ChatID: chatId, loggedIn: false });
     await OTP.create({
       otp: code,
       User_id: user.id,
