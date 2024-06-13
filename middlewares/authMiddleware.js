@@ -2,6 +2,8 @@
 const AllowedServersServices = require('../services/allowedServers');
 const base64 = require('base-64');
 const { statusCodes } = require('../constants/statusCode');
+const logger = require('../utils/logger');
+
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -12,16 +14,17 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const splitBearer = authHeader.split(' ')[1];
-    // const credentials = base64.decode(base64Credentials);
     const [servername, password] = splitBearer.split(':');
 
     // Use AllowedServersServices to verify the user
     const isValidUser = await AllowedServersServices.verifyServers(servername, password);
     
     if (!isValidUser) {
+      logger.error(`unauthorized server tried to access with the ${servername} : ${password.split('-')[0]}***` )
       return res.status(401).json({status: statusCodes.UNAUTHORIZED_KEY});
     }
 
+    req.servername = servername;
     next();
   } catch (error) {
     console.error('Error during user verification:', error);

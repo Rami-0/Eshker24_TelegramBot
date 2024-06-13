@@ -137,7 +137,7 @@ async function sendFillFormMessage(chatId, lang) {
     await bot.sendMessage(chatId, messages[lang].fillForm, {
         reply_markup: {
             inline_keyboard: [
-                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrl }}]
+                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrlWithLang }}]
             ],
             one_time_keyboard: true,
             resize_keyboard: true,
