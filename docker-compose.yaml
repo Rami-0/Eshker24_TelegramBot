@@ -35,7 +35,7 @@ services:
       - '8080:8080'
     depends_on:
       - db
-    command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'npm', 'start']
+    command: ['./wait-for-it.sh', 'db:5432', '-t', '60', '--', 'sh', '-c', 'tail -f /dev/null']
     environment:
       DATABASE_URL: postgresql://postgres:LwFOeUvgxsmBmeBFoBpeudpscGwuFQck@monorail.proxy.rlwy.net:12135/railway
     networks:

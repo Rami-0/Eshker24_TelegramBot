@@ -3,6 +3,60 @@ const { Op } = require('sequelize');
 
 class UserServices {
 
+	static async SelectUserByChatIdAndINN(INN, chatId) {
+		try {
+      const user = await User.findOne({ where: { INN, ChatID: chatId } });
+      return user;
+    } catch (error) {
+      console.error('Error finding user:', error);
+      throw new Error('Error finding user');
+    }
+	}
+
+	static async findLoggedInUsersByINNs(INNs) {
+    try {
+      const users = await User.findAll({
+        where: {
+          INN: INNs,
+          loggedIn: true
+        }
+      });
+      return users;
+    } catch (error) {
+      console.error('Error fetching logged-in users:', error);
+      throw new Error('Error fetching logged-in users');
+    }
+  }
+
+	static async DeactivateUser(INN){
+		try {
+      const user = await User.findOne({ where: { INN } });
+      if (user) {
+        user.loggedIn = false;
+				await user.save();
+				return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+	}
+	
+	static async ActivateUser(INN){
+		try {
+      const user = await User.findOne({ where: { INN } });
+      if (user) {
+        user.loggedIn = true;
+        await user.save();
+        return true;
+      } else {
+				return false;
+			}
+    } catch (error) {
+      return false;
+    }
+	}
 	static async DeleteUserConnection(INN, chatId){
 		try {
       const user = await User.findOne({ where: { INN, ChatID: chatId } });
@@ -37,7 +91,7 @@ class UserServices {
 	static async verify_user(user){
 		try {
       if (user) {
-				await user.update({...user, loggedIn : true});
+				await user.update({...user, loggedIn : true, wasActivatedBefore: true});
       } else {
         throw new Error('User not found');
       }
@@ -52,7 +106,7 @@ class UserServices {
     if (!user) {
       throw new Error('User not found');
     }
-    await user.update({ ChatID: chatId, INN });
+    await user.update({ ChatID: chatId, loggedIn: false });
     await OTP.create({
       otp: code,
       User_id: user.id,
@@ -63,6 +117,7 @@ class UserServices {
     throw new Error(`Could not update user and create OTP: ${error.message}`);
   }
 }
+
 	// Function to create a new user
 	static async createUser(data) {
 		try {
@@ -72,7 +127,7 @@ class UserServices {
 			throw new Error(`Could not create user ${error}`);
 		}
 	}
-
+	
 	// Function to get all users
 	static async getAllUsers() {
 		try {

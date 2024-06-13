@@ -29,10 +29,6 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
-      Auth: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
       lang: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -42,7 +38,12 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-      }
+      },
+      wasActivatedBefore: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      }  
     });
   },
   async down(queryInterface, Sequelize) {

@@ -2,26 +2,139 @@ const speakeasy = require('speakeasy');
 const UserServices = require('../services/user');
 const OTPServices = require('../services/otp');
 const { sendMessage } = require('../api/api');
-const base64 = require('base-64');
 const { statusCodes } = require('../constants/statusCode');
+const logger = require('../utils/logger');
 
 class UserController {
+  static async spamUsersAction(req, res) {
+  try {
+    const { INNs, message } = req.body; // Expecting INNs to be an array of INN strings
+    if (!Array.isArray(INNs) || INNs.length === 0) {
+      logger.warn(`Invalid INNs array received from server: ${req.servername}`);
+      return res.status(400).json({ status: statusCodes.INVALID_INPUT });
+    }
+
+    const users = await UserServices.findLoggedInUsersByINNs(INNs);
+    if (users.length === 0) {
+      logger.warn(`No users found for provided INNs from server: ${req.servername}`);
+      return res.status(404).json({ status: statusCodes.USER_NOT_FOUND });
+    }
+
+    for (const user of users) {
+      await sendMessage(user.ChatID, message);
+      logger.info(`Message sent to user with ChatID: ${user.ChatID} from server: ${req.servername}`);
+    }
+
+    res.status(200).json({ status: statusCodes.OK });
+  } catch (error) {
+    logger.error(`Error spamming users from server: ${req.servername} - ${error.message}`);
+    // console.error('Error spamming users:', error);
+    res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+  }
+}
+  static async ActivateUser(req, res) {
+    try {
+      const { INN } = req.body;
+      const req_data = await UserServices.findByINN(INN);
+
+      if (!req_data) {
+        logger.warn(`User not found for INN: ${INN} from server: ${req.servername}`);
+        return res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+      }
+
+      if (req_data.user.ChatID) {
+        if (req_data.user.loggedIn === false) {
+          await UserServices.ActivateUser(INN);
+          logger.info(`User activated for INN: ${INN} from server: ${req.servername}`);
+          return res.status(200).json({ status: statusCodes.USER_ACTIVATED });
+        } else if (req_data.user.loggedIn === true) {
+          logger.info(`User already activated for INN: ${INN} from server: ${req.servername}`);
+          return res.status(201).json({ status: statusCodes.USER_ALREADY_ACTIVATED });
+        }
+      } else {
+        logger.warn(`User is not registered for INN: ${INN} from server: ${req.servername}`);
+        return res.status(400).json({ status: statusCodes.USER_IS_NOT_REGISTERED });
+      }
+    } catch (error) {
+      logger.error(`Error activating user for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+      res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+    }
+  }
+  static async DeactivateUser(req, res) {
+    try {
+      const { INN } = req.body;
+      const req_data = await UserServices.findByINN(INN);
+
+      if (!req_data) {
+        logger.warn(`User not found for INN: ${INN} from server: ${req.servername}`);
+        return res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+      }
+
+      if (req_data.user.ChatID) {
+        if (req_data.user.loggedIn === true) {
+          await UserServices.DeactivateUser(INN);
+          logger.info(`User deactivated for INN: ${INN} from server: ${req.servername}`);
+          return res.status(200).json({ status: statusCodes.USER_DEACTIVATED });
+        } else if (req_data.user.loggedIn === false) {
+          logger.info(`User already deactivated for INN: ${INN} from server: ${req.servername}`);
+          return res.status(201).json({ status: statusCodes.USER_ALREADY_DEACTIVATED });
+        }
+      } else {
+        logger.warn(`User is not registered for INN: ${INN} from server: ${req.servername}`);
+        return res.status(400).json({ status: statusCodes.USER_IS_NOT_REGISTERED });
+      }
+    } catch (error) {
+      logger.error(`Error deactivating user for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+      res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+    }
+  }
+
+  static async GetUserData(req, res){
+    try{
+      // recive INN from param of get request
+      const { inn } = req.query;
+      const req_data = await UserServices.findByINN(inn);
+      if (!req_data) {
+        logger.warn(`User not found for INN: ${inn} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      } else if (req_data.user) {
+        logger.info(`User data retrieved for INN: ${inn} from server: ${req.servername}`);
+        res.status(200).json({ user: req_data.user, statusCodes: statusCodes.OK });
+        return;
+      }
+      else{
+        logger.warn(`User not found for INN: ${inn} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      }
+    }
+    catch (error) {
+      logger.error(`Error retrieving user data for INN: ${inn} from server: ${req.servername} - ${error.message}`);
+      res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+      return;
+    }
+  }
   static async DeleteUserConnection(req, res) {
     try {
       const { INN, Chat_ID } = req.body;
       const req_data = await UserServices.findByINN(INN);
       if (!req_data) {
+        logger.warn(`User not found for INN: ${INN} from server: ${req.servername}`);
         res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
         return;
       } else if (req_data.user.ChatID!== Chat_ID) {
+        logger.warn(`Chat ID mismatch for INN: ${INN} from server: ${req.servername}`);
         res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
         return;
       } else {
         await UserServices.DeleteUserConnection(INN, Chat_ID);
+        logger.info(`User connection deleted for INN: ${INN} from server: ${req.servername}`);
         res.status(200).json({ status: statusCodes.USER_DELETED });
         return;
       }
     } catch (error) {
+      logger.error(`Error deleting user connection for INN: ${INN} from server: ${req.servername} - ${error.message}`);
       res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
       return;
     }
@@ -31,7 +144,8 @@ class UserController {
     try {
       const { INN, chatId } = req.body;
       const req_data = await UserServices.findByINN(INN);
-      console.log(req_data.message)
+
+      // Case 1: New User (Not found in the database)
       if (!req_data) {
         const secret = speakeasy.generateSecret({ length: 8 });
         const code = speakeasy.totp({
@@ -41,12 +155,13 @@ class UserController {
         const expiryInSec = 1000;
         const expiryDate = new Date(Date.now() + expiryInSec * 1000);
         const CreateUnregisterdUser = await UserServices.CreateUserWithINN(INN, chatId, code, expiryDate);
+        logger.info(`New unregistered user created for INN: ${INN} from server: ${req.servername}`);
         res.status(200).json({ ...CreateUnregisterdUser, status: statusCodes.UNREGISTERED_USER_CREATED });
         return;
-      } else if (req_data.message && req_data.user.ChatID == chatId) {
-        res.status(400).json({ status: statusCodes.USER_ALREADY_REGISTERED });
-        return;
-      } else if (req_data.user.ChatID === chatId) {
+      } 
+      
+      // Case 2: User exists, not fully registered (loggedIn is false, wasActivatedBefore is false)
+      else if (req_data.user.loggedIn === false && req_data.user.wasActivatedBefore === false) {
         const secret = speakeasy.generateSecret({ length: 8 });
         const code = speakeasy.totp({
           secret: secret.base32,
@@ -55,9 +170,28 @@ class UserController {
         const expiryInSec = 1000;
         const expiryDate = new Date(Date.now() + expiryInSec * 1000);
         const updateUser = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
+        logger.info(`User found but not fully registered. OTP created for INN: ${INN} from server: ${req.servername}`);
         res.status(200).json({ ...updateUser, status: statusCodes.OK });
         return;
-      } else {
+      } 
+
+      // Case 3: User fully registered and wants to change Chat ID
+      else if (req_data.user.loggedIn === true && req_data.user.wasActivatedBefore === true && req_data.user.ChatID !== chatId) {
+        // Here we assume we don't support changing Chat ID after full registration.
+        logger.warn(`User is fully registered and tried to change Chat ID for INN: ${INN} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.USER_ALREADY_REGISTERED });
+        return;
+      } 
+
+      // Case 4: User is fully registered and tries to register again with the same Chat ID
+      else if (req_data.user.loggedIn === true && req_data.user.ChatID === chatId) {
+        logger.warn(`User already fully registered for INN: ${INN} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.USER_ALREADY_REGISTERED });
+        return;
+      } 
+
+      // Case 5: User exists, was activated before but is not logged in, and wants to re-register with the same Chat ID
+      else if (req_data.user.loggedIn === false && req_data.user.wasActivatedBefore === true && req_data.user.ChatID === chatId) {
         const secret = speakeasy.generateSecret({ length: 8 });
         const code = speakeasy.totp({
           secret: secret.base32,
@@ -65,12 +199,47 @@ class UserController {
         });
         const expiryInSec = 1000;
         const expiryDate = new Date(Date.now() + expiryInSec * 1000);
-        const data = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
-        res.status(200).json({ ...data, status: statusCodes.OK });
+        const updateUser = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
+        logger.info(`User re-registering with the same Chat ID after being deactivated for INN: ${INN} from server: ${req.servername}`);
+        res.status(200).json({ ...updateUser, status: statusCodes.OK });
+        return;
+      } 
+
+      // Default case to handle unexpected scenarios
+      else {
+        logger.error(`Unhandled case for user with INN: ${INN} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.INVALID_REQUEST });
         return;
       }
     } catch (error) {
-      console.error('Error updating user:', error);
+      logger.error(`Error handling authentication for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+      res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
+    }
+  }
+
+  static async update_chat_id(req, res){
+    const { INN, chatId, new_chat_id } = req.body
+    try{
+      const req_data = await UserServices.SelectUserByChatIdAndINN(INN, chatId);
+      if (req_data){
+        const secret = speakeasy.generateSecret({ length: 8 });
+        const code = speakeasy.totp({
+          secret: secret.base32,
+          encoding: 'base32',
+        });
+        const expiryInSec = 1000;
+        const expiryDate = new Date(Date.now() + expiryInSec * 1000);
+        const update_chat_id = await UserServices.updateUserAndCreateOTP(INN, new_chat_id, code, expiryDate);
+        if (update_chat_id){
+          res.status(200).json({ ...update_chat_id, status: statusCodes.OK });
+        }
+      }
+      else{
+        res.status(400).json({ status: statusCodes.INVALID_REQUEST });
+      }
+    } 
+    catch (error){
+      logger.error(`Error updating chat id for INN: ${INN} from server: ${req.servername} - ${error.message}`);
       res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
     }
   }
@@ -92,15 +261,19 @@ class UserController {
         if (isOtpValid === 'success') {
           const verify_user = await UserServices.verify_user(req_data.user);
           sendMessage(data.Chat_ID, "\u2705");
+          logger.info(`OTP successfully verified for INN: ${data.INN}, and user has loggedIn successfully from server: ${req.servername}`);
           return res.status(200).json({ success: true, status: statusCodes.OK });
         } else {
+          logger.warn(`OTP verification failed for INN: ${data.INN} from server: ${req.servername} - ${isOtpValid}`);
           return res.status(400).json({ success: false, message: isOtpValid, status: statusCodes.OTP_VERIFICATION_FAILED });
         }
       } else {
+        logger.warn(`Invalid Chat ID for INN: ${data.INN} from server: ${req.servername}`);
         return res.status(400).json({ success: false, message: 'Invalid Chat ID', status: statusCodes.INVALID_CHAT_ID });
       }
     } catch (error) {
-      console.error('Error while verifying INN:', error);
+      logger.error(`Error while verifying INN: ${data.INN} from server: ${req.servername} - ${error.message}`);
+      // console.error('Error while verifying INN:', error);
       return res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
     }
   }
@@ -117,20 +290,19 @@ class UserController {
       try {
         const req_data = await UserServices.findByINN(INN);
         if (!req_data?.user) {
+          logger.warn(`User not found for INN: ${INN} from server: ${req.servername}`);
           return res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
         }
         if (!req_data.user.loggedIn) {
+          logger.warn(`Forbidden action - user not logged in (no activated) for INN: ${INN} from server: ${req.servername}`);
           res.status(403).json({ message: statusCodes.FORBIDDEN.message, status: statusCodes.FORBIDDEN });
           return;
         }
-        if (req_data && req_data.user) {
-          chatId = req_data.user.ChatID;
-          user = req_data.user;
-        } else {
-          return res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-        }
+        chatId = req_data.user.ChatID;
+        user = req_data.user;
       } catch (error) {
-        console.error('Error finding the user:', error);
+        logger.error(`Error finding the user for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+        // console.error('Error finding the user:', error);
         return res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
       }
 
@@ -142,39 +314,27 @@ class UserController {
         });
 
         try {
-          const AddOtp = await OTPServices.createOTP({ User_id: user.id, otp: code, expiry: expiryDate });
+          await OTPServices.createOTP({ User_id: user.id, otp: code, expiry: expiryDate });
 
           const send = `${message ? message : ''}\nYour OTP code is: ${code}`;
-
           await sendMessage(chatId, send);
 
+          logger.info(`OTP created and sent for INN: ${INN} from server: ${req.servername}`);
           res.status(200).json({ otp: code, expiry: expiryDate, status: statusCodes.OTP_SENT });
-        } catch (sendError) {
-          console.error('Error sending message or creating OTP:', sendError);
+        } catch (error) {
+          logger.error(`Error sending message or creating OTP for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+          // console.error('Error sending message or creating OTP:', sendError);
           res.status(500).json({ error: statusCodes.FAILED_TO_SEND_OTP.message, status: statusCodes.FAILED_TO_SEND_OTP });
         }
       } else {
-        console.error('Chat ID is not set for the user.');
+        logger.warn(`Chat ID does not exist for user with INN: ${INN} from server: ${req.servername}`);
+        // console.error('Chat ID is not set for the user.');
         res.status(400).json({ error: "Chat ID doesn't exist", status: statusCodes.INVALID_CHAT_ID });
       }
     } catch (error) {
-      console.error('Error generating OTP:', error);
+      logger.error(`Error generating OTP for INN: ${INN} from server: ${req.servername} - ${error.message}`);
+      // console.error('Error generating OTP:', error);
       res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async init(req, res) {
-    const userData = {
-      INN: req.body.INN,
-      Auth: req.body.pin
-    };
-    try {
-      const send = await UserServices.createUser(userData);
-      console.log(send);
-      res.status(200).json({ success: 'User created successfully', status: statusCodes.OK });
-    } catch (err) {
-      console.log(err);
-      res.status(400).json({ error: err.message, status: statusCodes.INTERNAL_SERVER_ERROR });
     }
   }
 
@@ -190,82 +350,16 @@ class UserController {
       const isOtpValid = await OTPServices.verifyOtp(User_id, data.otp);
 
       if (isOtpValid === 'success') {
+        logger.info(`OTP verified successfully for INN: ${data.INN} from server: ${req.servername}`);
         return res.status(200).json({ success: true, status: statusCodes.OK });
       } else {
+        logger.warn(`OTP verification failed for INN: ${data.INN} from server: ${req.servername} - ${isOtpValid}`);
         return res.status(400).json({ success: false, message: isOtpValid, status: statusCodes.OTP_VERIFICATION_FAILED });
       }
     } catch (error) {
-      console.error('Error while verifying INN:', error);
+      logger.error(`Error while verifying OTP for INN: ${data.INN} from server: ${req.servername} - ${error.message}`);
+      // console.error('Error while verifying INN:', error);
       return res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async registerUser(req, res) {
-    console.log(req.body);
-    const userData = {
-      INN: req.body.INN,
-      password: req.body.password,
-      chatId: req.body.chatId,
-      lang: req.body.lang,
-    };
-    let user;
-    try {
-      const req_data = await UserServices.findByINN(userData.INN);
-      if (req_data) {
-        user = req_data.user;
-        const Auth = req_data.user?.Auth;
-        if (Auth !== userData.password) {
-          res.status(401).json({ error: statusCodes.INVALID_PASSWORD.message, status: statusCodes.INVALID_PASSWORD });
-          return;
-        }
-      } else {
-        res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-        return;
-      }
-
-      try {
-        user.lang = userData.lang;
-        user.loggedIn = true;
-        await UserServices.assignChatID(user, userData.chatId);
-        res.status(200).json({ success: statusCodes.USER_REGISTERED.message, status: statusCodes.USER_REGISTERED });
-      } catch (err) {
-        console.error(err);
-        res.status(400).json({ error: err.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-      }
-    } catch (err) {
-      console.error('Error while verifying INN:', err);
-      res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async checkIfUserHasRegisteredChat(req, res) {
-    const { chatId } = req.query;
-    try {
-      const req_data = await UserServices.findByChatID(chatId);
-      if (req_data && req_data.ChatID) {
-        return res.status(200).json({ success: true, status: statusCodes.OK });
-      } else {
-        return res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-      }
-    } catch (error) {
-      console.error('Error finding the user:', error);
-      return res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
-  }
-
-  static async updatePassword(req, res) {
-    const { INN, password, repeatPassword } = req.body;
-    try {
-      const req_data = await UserServices.updatePassword(INN, password, repeatPassword);
-      if (req_data) {
-        return res.status(200).json({ success: true, status: statusCodes.PASSWORD_UPDATED });
-      } else {
-        return res.status(404).json({ error: statusCodes.USER_NOT_FOUND.message, status: statusCodes.USER_NOT_FOUND });
-      }
-    } catch (e) {
-      console.log(e);
-      res.status(400).json({ error: e.message, status: statusCodes.INTERNAL_SERVER_ERROR });
-      return;
     }
   }
 }

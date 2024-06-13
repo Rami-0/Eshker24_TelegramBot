@@ -123,7 +123,8 @@ async function sendRegisteredUserMenu(chatId, lang) {
                 [{ text: `${messages[lang].contacts}`, web_app:  {url: Links[lang].contacts} }],
                 [{ text: `${messages[lang].aboutUs}`, web_app:  {url: Links[lang].about} }],
                 [{ text: `${messages[lang].points}`, web_app:  {url: Links[lang].points} }],
-                [{ text: `${messages[lang].changeLang}`, callback_data: 'changeLang' }]
+                [{ text: `${messages[lang].changeLang}`, callback_data: 'changeLang' }],
+                [{ text: messages[lang].ChangeTelegramUserID, web_app: { url: webAppUrl + `changeChatId/?lang=${lang}` }}]
             ],
             one_time_keyboard: true,    
             resize_keyboard: true,
@@ -133,12 +134,11 @@ async function sendRegisteredUserMenu(chatId, lang) {
 
 async function sendFillFormMessage(chatId, lang) {
     console.log(lang);
-    let webAppUrlWithLang = `${webAppUrl}?lang=${lang}`; // append lang as a query parameter
     await bot.sendMessage(chatId, messages[lang].fillForm, {
         reply_markup: {
             inline_keyboard: [
-                [{ text: messages[lang].visitWebsite, web_app: { url: webAppUrlWithLang }}], // Correctly structured row
-                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrl + 'set_auth/' + `?lang=${lang}` }}] // Correctly structured row
+                [{ text: messages[lang].loginWithIshker, web_app: { url: webAppUrl + `set_auth/?lang=${lang}` }}],
+                [{ text: messages[lang].ChangeTelegramUserID, web_app: { url: webAppUrl + `changeChatId/?lang=${lang}` }}]
             ],
             one_time_keyboard: true,
             resize_keyboard: true,

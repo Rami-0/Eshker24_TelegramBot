@@ -4,20 +4,6 @@ const router = new Router();
 
 const userController = require('../controller/user.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
-const serverMiddleware = require('../middlewares/serverMiddleware');
-
-/**
- * Инициализировать сессию пользователя.
- * @param {Object} req - Объект запроса.
- *    @body {string} INN - ИНН пользователя.
- *    @body {string} pin - Пин-код для аутентификации пользователя.
- * @param {Object} res - Объект ответа.
- * @returns {Object} - status { code , message }
- *    @returns {number} 0 - Если сессия пользователя успешно инициализирована.
- *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
- */
-
-router.post('/init', authMiddleware, userController.init);
 
 /**
  * Создать OTP для пользователя.
@@ -80,15 +66,47 @@ router.put('/user/verification', authMiddleware, userController.VerifyOTP_fromIs
 
 router.delete('/user/delete', authMiddleware, userController.DeleteUserConnection)
 
-// for webApp. 
+/**
+ * Активировать пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 18 - Если пользователь успешно активирован.
+ *    @returns {number} 19 - Если пользователь уje активирован.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
 
-router.get('/registration', serverMiddleware, userController.checkIfUserHasRegisteredChat);
+router.put('/user/activate', authMiddleware, userController.ActivateUser);
 
-router.post('/registration', serverMiddleware, userController.registerUser);
+/**
+ * Деактивировать пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 21 - Если пользователь успешно деактивирован.
+ *    @returns {number} 22 - Если пользователь уje деактивирован.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
 
-router.put('/registration', serverMiddleware, userController.updatePassword);
+router.put('/user/deactivate', authMiddleware, userController.DeactivateUser);
 
-router.post('/set_auth', serverMiddleware, userController.setAuth);
+/**
+ * Получить данные пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @query {string} INN - ИНН пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message, data }
+ *    @returns {number} 0 - Если данные пользователя успешно получены.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
 
+router.get('/user', authMiddleware, userController.GetUserData);
+
+router.post('/spam', authMiddleware, userController.spamUsersAction);
 
 module.exports = router;

@@ -17,10 +17,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true,
     },
-    Auth: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     lang: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -29,7 +25,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-    }  
+    }, 
+    wasActivatedBefore: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    }
   }, {});
 
   User.associate = function(models) {

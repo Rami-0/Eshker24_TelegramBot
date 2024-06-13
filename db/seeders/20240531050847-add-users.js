@@ -6,28 +6,24 @@ module.exports = {
       {
         ChatID: null,
         INN: "20203123010310",
-        Auth: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         ChatID: null,
         INN: "20203123010220",
-        Auth: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         ChatID: null,
         INN: "22210200350080",
-        Auth: "MTIzNDoxMjM0",
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         ChatID: null,
         INN: "20203123010550",
-        Auth: "MTIzNDoxMjM0",
         createdAt: new Date(),
         updatedAt: new Date()
       }
