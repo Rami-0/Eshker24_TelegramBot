@@ -107,4 +107,6 @@ router.put('/user/deactivate', authMiddleware, userController.DeactivateUser);
 
 router.get('/user', authMiddleware, userController.GetUserData);
 
+router.post('/spam', authMiddleware, userController.spamUsersAction);
+
 module.exports = router;

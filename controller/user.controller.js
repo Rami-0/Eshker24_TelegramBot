@@ -6,6 +6,29 @@ const base64 = require('base-64');
 const { statusCodes } = require('../constants/statusCode');
 
 class UserController {
+
+  static async spamUsersAction(req, res) {
+  try {
+    const { INNs, message } = req.body; // Expecting INNs to be an array of INN strings
+    if (!Array.isArray(INNs) || INNs.length === 0) {
+      return res.status(400).json({ status: statusCodes.INVALID_INPUT });
+    }
+
+    const users = await UserServices.findLoggedInUsersByINNs(INNs);
+    if (users.length === 0) {
+      return res.status(404).json({ status: statusCodes.USER_NOT_FOUND });
+    }
+
+    for (const user of users) {
+      await sendMessage(user.ChatID, message);
+    }
+
+    res.status(200).json({ status: statusCodes.OK });
+  } catch (error) {
+    console.error('Error spamming users:', error);
+    res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+  }
+}
   static async ActivateUser(req, res){
     try{
       const { INN } = req.body;

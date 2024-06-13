@@ -3,6 +3,21 @@ const { Op } = require('sequelize');
 
 class UserServices {
 
+	static async findLoggedInUsersByINNs(INNs) {
+    try {
+      const users = await User.findAll({
+        where: {
+          INN: INNs,
+          loggedIn: true
+        }
+      });
+      return users;
+    } catch (error) {
+      console.error('Error fetching logged-in users:', error);
+      throw new Error('Error fetching logged-in users');
+    }
+  }
+
 	static async DeactivateUser(INN){
 		try {
       const user = await User.findOne({ where: { INN } });

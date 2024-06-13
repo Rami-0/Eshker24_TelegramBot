@@ -23,6 +23,7 @@ const statusCodes = {
   USER_IS_NOT_REGISTERED: { code: 20, message: "User is not registered" },
   USER_DEACTIVATED: { code: 21, message: "User deactivated", success: 0 },
   USER_ALREADY_DEACTIVATED: { code: 22, message: "User already deactivated" },
+  INVALID_INPUT: { code: 23, message: "INNs should be a non-empty array" },
 };
 
 module.exports = { statusCodes };
