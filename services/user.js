@@ -92,6 +92,17 @@ class UserServices {
     throw new Error(`Could not update user and create OTP: ${error.message}`);
   }
 }
+
+	// Function to create a new user
+	static async createUser(data) {
+		try {
+			const user = await User.create(data);
+			return user;
+		} catch (error) {
+			throw new Error(`Could not create user ${error}`);
+		}
+	}
+	
 	// Function to get all users
 	static async getAllUsers() {
 		try {

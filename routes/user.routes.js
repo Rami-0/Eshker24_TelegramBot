@@ -66,8 +66,45 @@ router.put('/user/verification', authMiddleware, userController.VerifyOTP_fromIs
 
 router.delete('/user/delete', authMiddleware, userController.DeleteUserConnection)
 
+/**
+ * Активировать пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 18 - Если пользователь успешно активирован.
+ *    @returns {number} 19 - Если пользователь уje активирован.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
+
 router.put('/user/activate', authMiddleware, userController.ActivateUser);
 
+/**
+ * Деактивировать пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @body {string} INN - ИНН пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message }
+ *    @returns {number} 21 - Если пользователь успешно деактивирован.
+ *    @returns {number} 22 - Если пользователь уje деактивирован.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
+
 router.put('/user/deactivate', authMiddleware, userController.DeactivateUser);
+
+/**
+ * Получить данные пользователя.
+ * @param {Object} req - Объект запроса.
+ *    @query {string} INN - ИНН пользователя.
+ * @param {Object} res - Объект ответа.
+ * @returns {Object} - status { code , message, data }
+ *    @returns {number} 0 - Если данные пользователя успешно получены.
+ *    @returns {number} 1 - Если пользователь не найден.
+ *    @returns {number} 6 - Если произошла внутренняя ошибка сервера.
+ */
+
+router.get('/user', authMiddleware, userController.GetUserData);
 
 module.exports = router;

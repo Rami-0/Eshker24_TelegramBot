@@ -6,8 +6,9 @@ const base64 = require('base-64');
 const { statusCodes } = require('../constants/statusCode');
 
 class UserController {
-  static async ActivateUser(INN){
+  static async ActivateUser(req, res){
     try{
+      const { INN } = req.body;
       const req_data = await UserServices.findByINN(INN);
       if (!req_data) {
         res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
@@ -36,8 +37,9 @@ class UserController {
       return;
     }  
   }
-  static async DeactivateUser(INN){
+  static async DeactivateUser(req, res){
     try{
+      const { INN } = req.body;
       const req_data = await UserServices.findByINN(INN);
       if (!req_data) {
         res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
@@ -67,8 +69,27 @@ class UserController {
     }  
   }
 
-  static async GetUserData(INN){
-
+  static async GetUserData(req, res){
+    try{
+      // recive INN from param of get request
+      const { inn } = req.query;
+      const req_data = await UserServices.findByINN(inn);
+      if (!req_data) {
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      } else if (req_data.user) {
+        res.status(200).json({ user: req_data.user, statusCodes: statusCodes.OK });
+        return;
+      }
+      else{
+        res.status(400).json({ status: statusCodes.USER_NOT_FOUND });
+        return;
+      }
+    }
+    catch (err) {
+      res.status(500).json({ status: statusCodes.INTERNAL_SERVER_ERROR });
+      return;
+    }
   }
   static async DeleteUserConnection(req, res) {
     try {
