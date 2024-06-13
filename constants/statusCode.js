@@ -24,6 +24,7 @@ const statusCodes = {
   USER_DEACTIVATED: { code: 21, message: "User deactivated", success: 0 },
   USER_ALREADY_DEACTIVATED: { code: 22, message: "User already deactivated" },
   INVALID_INPUT: { code: 23, message: "INNs should be a non-empty array" },
+  INVALID_REQUEST: { code: 24, message: "incorrect request" }
 };
 
 module.exports = { statusCodes };

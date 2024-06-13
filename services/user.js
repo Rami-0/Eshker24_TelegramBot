@@ -81,7 +81,7 @@ class UserServices {
 	static async verify_user(user){
 		try {
       if (user) {
-				await user.update({...user, loggedIn : true});
+				await user.update({...user, loggedIn : true, wasActivatedBefore: true});
       } else {
         throw new Error('User not found');
       }
@@ -96,7 +96,7 @@ class UserServices {
     if (!user) {
       throw new Error('User not found');
     }
-    await user.update({ ChatID: chatId, INN });
+    await user.update({ ChatID: chatId, INN, loggedIn: false });
     await OTP.create({
       otp: code,
       User_id: user.id,

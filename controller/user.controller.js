@@ -145,7 +145,8 @@ class UserController {
     try {
       const { INN, chatId } = req.body;
       const req_data = await UserServices.findByINN(INN);
-      // console.log(req_data.message)
+
+      // Case 1: New User (Not found in the database)
       if (!req_data) {
         const secret = speakeasy.generateSecret({ length: 8 });
         const code = speakeasy.totp({
@@ -155,14 +156,13 @@ class UserController {
         const expiryInSec = 1000;
         const expiryDate = new Date(Date.now() + expiryInSec * 1000);
         const CreateUnregisterdUser = await UserServices.CreateUserWithINN(INN, chatId, code, expiryDate);
-        logger.info(`Unregistered user created for INN: ${INN} from server: ${req.servername}`);
+        logger.info(`New unregistered user created for INN: ${INN} from server: ${req.servername}`);
         res.status(200).json({ ...CreateUnregisterdUser, status: statusCodes.UNREGISTERED_USER_CREATED });
         return;
-      } else if (req_data.message && req_data.user.ChatID == chatId) {
-        logger.warn(`User already registered for INN: ${INN} from server: ${req.servername}`);
-        res.status(400).json({ status: statusCodes.USER_ALREADY_REGISTERED });
-        return;
-      } else if (req_data.user.ChatID === chatId) {
+      } 
+      
+      // Case 2: User exists, not fully registered (loggedIn is false, wasActivatedBefore is false)
+      else if (req_data.user.loggedIn === false && req_data.user.wasActivatedBefore === false) {
         const secret = speakeasy.generateSecret({ length: 8 });
         const code = speakeasy.totp({
           secret: secret.base32,
@@ -171,10 +171,28 @@ class UserController {
         const expiryInSec = 1000;
         const expiryDate = new Date(Date.now() + expiryInSec * 1000);
         const updateUser = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
-        logger.info(`User OTP updated for INN: ${INN} from server: ${req.servername}`);
+        logger.info(`User found but not fully registered. OTP created for INN: ${INN} from server: ${req.servername}`);
         res.status(200).json({ ...updateUser, status: statusCodes.OK });
         return;
-      } else {
+      } 
+
+      // Case 3: User fully registered and wants to change Chat ID
+      else if (req_data.user.loggedIn === true && req_data.user.wasActivatedBefore === true && req_data.user.ChatID !== chatId) {
+        // Here we assume we don't support changing Chat ID after full registration.
+        logger.warn(`User is fully registered and tried to change Chat ID for INN: ${INN} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.USER_ALREADY_REGISTERED });
+        return;
+      } 
+
+      // Case 4: User is fully registered and tries to register again with the same Chat ID
+      else if (req_data.user.loggedIn === true && req_data.user.ChatID === chatId) {
+        logger.warn(`User already fully registered for INN: ${INN} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.USER_ALREADY_REGISTERED });
+        return;
+      } 
+
+      // Case 5: User exists, was activated before but is not logged in, and wants to re-register with the same Chat ID
+      else if (req_data.user.loggedIn === false && req_data.user.wasActivatedBefore === true && req_data.user.ChatID === chatId) {
         const secret = speakeasy.generateSecret({ length: 8 });
         const code = speakeasy.totp({
           secret: secret.base32,
@@ -182,17 +200,25 @@ class UserController {
         });
         const expiryInSec = 1000;
         const expiryDate = new Date(Date.now() + expiryInSec * 1000);
-        const data = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
-        logger.info(`User OTP created for INN: ${INN} from server: ${req.servername}`);
-        res.status(200).json({ ...data, status: statusCodes.OK });
+        const updateUser = await UserServices.updateUserAndCreateOTP(INN, chatId, code, expiryDate);
+        logger.info(`User re-registering with the same Chat ID after being deactivated for INN: ${INN} from server: ${req.servername}`);
+        res.status(200).json({ ...updateUser, status: statusCodes.OK });
+        return;
+      } 
+
+      // Default case to handle unexpected scenarios
+      else {
+        logger.error(`Unhandled case for user with INN: ${INN} from server: ${req.servername}`);
+        res.status(400).json({ status: statusCodes.INVALID_REQUEST });
         return;
       }
     } catch (error) {
-      logger.error(`Error updating user for INN: ${INN} from server: ${req.servername} - ${error.message}`);
-      // console.error('Error updating user:', error);
+      logger.error(`Error handling authentication for INN: ${INN} from server: ${req.servername} - ${error.message}`);
       res.status(500).json({ error: statusCodes.INTERNAL_SERVER_ERROR.message, status: statusCodes.INTERNAL_SERVER_ERROR });
     }
   }
+
+  //todo add a new end point to handel changing the chat with INN and Chat-id. 
 
   static async VerifyOTP_fromIshkerSide(req, res) {
     const data = {
@@ -211,7 +237,7 @@ class UserController {
         if (isOtpValid === 'success') {
           const verify_user = await UserServices.verify_user(req_data.user);
           sendMessage(data.Chat_ID, "\u2705");
-          logger.info(`OTP successfully verified for INN: ${data.INN} from server: ${req.servername}`);
+          logger.info(`OTP successfully verified for INN: ${data.INN}, and user has loggedIn successfully from server: ${req.servername}`);
           return res.status(200).json({ success: true, status: statusCodes.OK });
         } else {
           logger.warn(`OTP verification failed for INN: ${data.INN} from server: ${req.servername} - ${isOtpValid}`);

@@ -39,6 +39,11 @@ module.exports = {
         allowNull: false,
         defaultValue: false,
       },
+      wasActivatedBefore: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      }  
     });
   },
   async down(queryInterface, Sequelize) {
