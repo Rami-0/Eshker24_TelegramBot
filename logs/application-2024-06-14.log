@@ -1,0 +1,11 @@
+2024-06-14T05:05:05.979Z [info]: New unregistered user created for INN: 20203123010004 from server: webApp
+2024-06-14T05:05:16.825Z [warn]: No users found for provided ChatID from server: webApp
+2024-06-14T05:05:59.271Z [info]: OTP successfully verified for INN: 20203123010004, and user has loggedIn successfully from server: ISHKER
+2024-06-14T05:08:10.438Z [error]: Error getting ACL list from server: webApp - column "EntityAccess" does not exist
+2024-06-14T05:09:34.155Z [info]: New unregistered user created for INN: 20203123010004 from server: webApp
+2024-06-14T05:09:46.119Z [info]: User found but not fully registered. OTP created for INN: 20203123010004 from server: webApp
+2024-06-14T05:10:17.733Z [info]: OTP successfully verified for INN: 20203123010004, and user has loggedIn successfully from server: ISHKER
+2024-06-14T05:15:59.172Z [warn]: No users found for provided ChatID from server: webApp
+2024-06-14T05:30:01.174Z [info]: New unregistered user created for INN: 20203123010004 from server: webApp
+2024-06-14T05:30:16.676Z [info]: OTP successfully verified for INN: 20203123010004, and user has loggedIn successfully from server: ISHKER
+2024-06-14T05:34:49.941Z [error]: Error getting ACL list from server: webApp - Cannot set headers after they are sent to the client

@@ -3,10 +3,10 @@
 const bcrypt = require('bcryptjs'); // Include bcrypt for password hashing
 
 const allowedUsers = {
-  'M-I': 'b1a90968-1c37-427b-966c-b95858155e78',
-  'P-I': 'aa1b11c7-1d2c-4b36-8be3-9ebf39033aa4',
-  'M-R': '8c65ac8a-fdf8-4329-a608-7099b4f9406e',
-  'P-R': '13009ab7-6273-4e32-952d-745682ce4aba'
+  'ISHKER': 'b1a90968-1c37-427b-966c-b95858155e78',
+  'RSK': 'aa1b11c7-1d2c-4b36-8be3-9ebf39033aa4',
+  'O!': '8c65ac8a-fdf8-4329-a608-7099b4f9406e',
+  'MEGAPAY': '13009ab7-6273-4e32-952d-745682ce4aba'
 };
 
 module.exports = {
